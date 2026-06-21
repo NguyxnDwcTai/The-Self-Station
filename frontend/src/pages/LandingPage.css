@@ -1,0 +1,699 @@
+* {
+  box-sizing: border-box;
+}
+
+.landing-page-wrapper {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  --font-color: #ffffff; /* Ban đầu chữ màu trắng */
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+.landing-page-wrapper .main-content {
+  max-width: 1200px;
+  margin: 0 auto; /* Tự động căn đều 2 bên */
+  width: 100%;
+}
+
+.landing-page-wrapper .nav a.active {
+  color: #eb6933 !important; /* Chữ chuyển màu cam */
+  border-bottom: 2px solid #eb6933;
+}
+
+.landing-page-wrapper a {
+  text-decoration: none;
+}
+
+/* ================= HEADER ================= */
+.landing-page-wrapper .header {
+  position: fixed; /* Ép Header tràn lên phần Main */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.4s ease;
+  z-index: 1000; /* Đảm bảo header luôn nổi lên trên cùng */
+}
+
+.landing-page-wrapper .header .main-content .header-body {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Logo & Nav mặc định (màu trắng) */
+.landing-page-wrapper .header .header-body .logo {
+  color: var(--font-color);
+  font-size: 30px;
+  font-weight: 700;
+  font-style: italic;
+  cursor: pointer;
+  transition: color 0.4s ease;
+  margin: 0;
+}
+
+.landing-page-wrapper .header .header-body .nav {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.landing-page-wrapper .nav ul {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.landing-page-wrapper .nav a {
+  color: var(--font-color);
+  font-size: 16px;
+  padding: 8px 21px;
+  transition: color 0.4s ease;
+  white-space: nowrap;
+}
+
+/* --- TRẠNG THÁI HOVER VÀ SCROLL CỦA HEADER --- */
+.landing-page-wrapper .header:hover,
+.landing-page-wrapper .header.scrolled {
+  background-color: #ffffff; /* Nền trắng */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Thêm bóng đổ nhẹ cho đẹp */
+}
+
+.landing-page-wrapper .header:hover .logo,
+.landing-page-wrapper .header.scrolled .logo,
+.landing-page-wrapper .header:hover .nav a,
+.landing-page-wrapper .header.scrolled .nav a {
+  color: #000000; /* Chữ chuyển sang đen */
+}
+
+/* ================= HERO (SLIDER) ================= */
+.landing-page-wrapper .hero .main-content {
+  width: 100%;
+  max-width: 100%; /* Cho ảnh tràn viền hoàn toàn */
+}
+
+.landing-page-wrapper .hero .body {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Cắt bỏ phần ảnh bị tràn ra ngoài màn hình */
+}
+
+.landing-page-wrapper .hero .body .image-transition {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  /* Setup ban đầu: Nằm chờ ở bên TRÁI (-100%) */
+  transform: translateX(100%);
+  transition: transform 1s ease-in-out;
+}
+
+/* Trạng thái ảnh ĐANG HIỂN THỊ (Nằm giữa) */
+.landing-page-wrapper .hero .body .image-transition.active {
+  transform: translateX(0);
+}
+
+/* Trạng thái ảnh TRƯỢT RA (Đi sang PHẢI) */
+.landing-page-wrapper .hero .body .image-transition.exit {
+  transform: translateX(-100%);
+}
+
+/* ================= BRANCH DESC (MARQUEE HIỆU ỨNG CHẠY CHỮ) ================= */
+.landing-page-wrapper .branch-desc {
+  width: 100%;
+  overflow: hidden; /* Cắt bỏ phần chữ bị tràn ra ngoài màn hình */
+  background-color: #fdfaf0; /* Màu nền vàng nhạt giống ảnh mẫu */
+  padding: 20px 0;
+  display: flex;
+}
+
+.landing-page-wrapper .branch-desc .marquee-track {
+  display: flex;
+  width: max-content; /* Ép chiều rộng tự giãn theo nội dung bên trong */
+  animation: marqueeScroll 20s linear infinite; /* Chạy đều đặn 20s vòng lặp vô hạn */
+  height: 50px;
+}
+
+.landing-page-wrapper .branch-desc .marquee-group {
+  display: flex;
+  align-items: center;
+}
+
+.landing-page-wrapper .branch-desc .marquee-group p {
+  font-size: 16px;
+  font-weight: 700;
+  color: #7b6956; /* Màu chữ nâu giống ảnh mẫu */
+  margin: 0;
+  white-space: nowrap; /* Không cho chữ rớt dòng */
+  cursor: default;
+}
+
+.landing-page-wrapper .branch-desc .marquee-group .dot {
+  font-size: 16px;
+  color: #7b6956;
+  margin: 0 40px; /* Tạo khoảng cách an toàn giữa các đoạn text */
+}
+
+/* Hiệu ứng trượt mượt mà */
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Trượt chính xác 50% chiều dài của track (tương đương 1 group). 
+       Ngay khi group 1 biến mất, group 2 sẽ thế chỗ và animation reset về 0 mà mắt thường không nhận ra */
+    transform: translateX(-50%);
+  }
+}
+
+/* ================= FEATURED PRODUCTS ================= */
+.landing-page-wrapper .featured-products {
+  background-color: #fdfaf0; /* Màu nền vàng nhạt */
+  padding: 60px 0;
+  text-align: center;
+  position: relative;
+}
+
+.landing-page-wrapper .curved-text {
+  max-width: 400px;
+  margin: 0 auto -20px;
+}
+
+.landing-page-wrapper .collection-title {
+  color: #eb6933; /* Màu cam đặc trưng */
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 40px;
+}
+
+/* Tabs Danh mục */
+.landing-page-wrapper .product-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 50px;
+}
+
+.landing-page-wrapper .tab-item {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d2d2d;
+  cursor: pointer;
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.landing-page-wrapper .tab-item.active {
+  border-bottom: 2px solid #2d2d2d; /* Gạch chân đen khi active */
+}
+
+.landing-page-wrapper .tab-item sup {
+  font-size: 12px;
+  margin-left: 3px;
+  font-weight: 600;
+}
+
+/* Khu vực Slider */
+.landing-page-wrapper .carousel-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.landing-page-wrapper .carousel-container {
+  overflow: hidden;
+  width: 100%;
+}
+
+.landing-page-wrapper .carousel-track {
+  display: none; /* Ẩn mặc định, JS sẽ bật lên */
+  gap: 20px;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.landing-page-wrapper .carousel-track.active {
+  display: flex; /* Chỉ hiển thị tab đang chọn */
+}
+
+/* Lớp căn giữa khi sản phẩm <= 4 */
+.landing-page-wrapper .carousel-track.centered {
+  justify-content: center;
+}
+
+/* Từng Sản Phẩm */
+.landing-page-wrapper .product-card {
+  flex: 0 0 calc(25% - 15px); /* Hiển thị chính xác 4 sản phẩm 1 hàng */
+  text-align: center;
+  cursor: pointer;
+}
+
+.landing-page-wrapper .product-card .img-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Giữ tỷ lệ ảnh vuông */
+  margin-bottom: 15px;
+}
+
+/* Hiệu ứng phóng to ảnh khi hover mà không xô lệch bố cục */
+.landing-page-wrapper .product-card .img-wrap img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.landing-page-wrapper .product-card:hover .img-wrap img {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Badge (Tem đặc quyền) */
+.landing-page-wrapper .product-card .badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: #eb6933;
+  color: #fff;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: 50%;
+  font-weight: 600;
+  transform: rotate(15deg);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+}
+
+/* Chữ chi tiết của món ăn */
+.landing-page-wrapper .product-card .sub-name {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.landing-page-wrapper .product-card .prod-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.landing-page-wrapper .product-card .prod-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #eb6933;
+  margin: 0;
+}
+
+/* Nút điều hướng (Arrows) */
+.landing-page-wrapper .nav-btn {
+  background-color: #fff;
+  border: 1px solid #eee;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  position: absolute;
+  z-index: 2;
+  top: 40%;
+  transform: translateY(-50%);
+  transition: all 0.3s ease;
+}
+
+.landing-page-wrapper .nav-btn:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.landing-page-wrapper .prev-btn {
+  left: -25px;
+}
+.landing-page-wrapper .next-btn {
+  right: -25px;
+}
+
+/* ================= STORE LOCATOR ================= */
+.landing-page-wrapper .store-locator {
+  background-color: #ffffff; /* Nền trắng theo yêu cầu */
+  padding: 80px 0 0px;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-page-wrapper .locator-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1000px; /* Thu hẹp lại để layout cân đối như ảnh */
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Cột Trái */
+.landing-page-wrapper .locator-left {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.landing-page-wrapper .locator-left .text-content {
+  position: relative;
+  z-index: 2;
+}
+
+.landing-page-wrapper .locator-title {
+  font-size: 48px;
+  font-weight: 800;
+  color: #000000;
+  margin-bottom: 20px;
+  margin-top: 0;
+}
+
+.landing-page-wrapper .locator-desc {
+  font-size: 16px;
+  color: #000000;
+  line-height: 1.6;
+}
+
+/* Các Stickers bay lơ lửng */
+.landing-page-wrapper .sticker {
+  position: absolute;
+  z-index: 1;
+}
+
+/* Sticker đỏ (Đi cà phê để vui nhé) */
+.landing-page-wrapper .sticker-1 {
+  top: -40px;
+  left: -20px;
+  width: 80px;
+  transform: rotate(-15deg);
+}
+
+/* Sticker vàng (Một miếng dzủi zẻ) */
+.landing-page-wrapper .sticker-2 {
+  bottom: -60px;
+  right: -10px;
+  width: 90px;
+  transform: rotate(10deg);
+}
+
+/* Sticker xanh (Nhà của bạn đây rồii) */
+.landing-page-wrapper .sticker-3 {
+  top: -80px;
+  right: -50px;
+  width: 90px;
+  transform: rotate(15deg);
+}
+
+/* Cột Phải */
+.landing-page-wrapper .locator-right {
+  flex: 0 0 400px;
+  position: relative;
+}
+
+.landing-page-wrapper .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.landing-page-wrapper .custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Style cho thanh Select */
+.landing-page-wrapper .custom-select {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  color: #eb6933; /* Chữ màu cam */
+  background-color: #ffffff;
+  border: 1px solid #eb6933; /* Viền cam */
+  border-radius: 30px; /* Bo cong tròn */
+  appearance: none; /* Ẩn mũi tên mặc định của trình duyệt */
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Trạng thái bị khóa (khi chưa chọn thành phố) */
+.landing-page-wrapper .custom-select:disabled {
+  background-color: #f9f9f9;
+  border-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Tạo mũi tên màu cam tuỳ chỉnh cho thẻ select */
+.landing-page-wrapper .custom-select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eb6933' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none; /* Để click xuyên qua mũi tên xuống select */
+}
+
+/* Ẩn mũi tên cam đi nếu bị disable */
+.landing-page-wrapper .custom-select-wrapper:has(.custom-select:disabled)::after {
+  filter: grayscale(100%) opacity(0.5);
+}
+
+/* Nút Xem Danh Sách */
+.landing-page-wrapper .view-store-btn {
+  font-size: 16px;
+  font-weight: 800;
+  color: #000000;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  width: max-content;
+}
+
+.landing-page-wrapper .view-store-btn:hover {
+  text-decoration: underline;
+}
+
+/* Chỉnh viền dưới chân chữ cho giống ảnh */
+.landing-page-wrapper .view-store-btn span {
+  border-bottom: 2px solid #000;
+  padding-bottom: 2px;
+}
+
+/* ================= FOOTER ================= */
+.landing-page-wrapper .footer {
+  background-color: #000000;
+  color: #ffffff;
+  margin-top: 150px;
+  padding: 60px 0 40px;
+  font-size: 14px;
+  border-top: 5px solid #eb6933;
+}
+
+.landing-page-wrapper .footer .footer-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.landing-page-wrapper .footer-col {
+  flex: 1;
+}
+
+/* Cho cột địa chỉ rộng hơn một chút để không bị rớt chữ quá nhiều */
+.landing-page-wrapper .footer-col.contact-col {
+  flex: 1.3;
+}
+
+.landing-page-wrapper .footer-col h3 {
+  color: #eb6933; /* Màu cam đồng bộ với web */
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+}
+
+.landing-page-wrapper .footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.landing-page-wrapper .footer-col ul li {
+  margin-bottom: 15px;
+}
+
+.landing-page-wrapper .footer-col ul li a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.landing-page-wrapper .footer-col ul li a:hover {
+  color: #eb6933;
+}
+
+.landing-page-wrapper .footer-col p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.landing-page-wrapper .footer-col .highlight {
+  color: #eb6933;
+  font-weight: 700;
+}
+
+/* Phần logo và mạng xã hội */
+.landing-page-wrapper .brand-col .footer-logo {
+  font-size: 28px;
+  font-weight: 800;
+  font-style: italic;
+  margin-bottom: 40px;
+  margin-top: -5px;
+}
+
+.landing-page-wrapper .social-section h3 {
+  margin-bottom: 15px;
+}
+
+.landing-page-wrapper .social-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.landing-page-wrapper .social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  color: #000000;
+  transition: all 0.3s ease;
+}
+
+.landing-page-wrapper .social-icons a:hover {
+  background-color: #eb6933;
+  color: #ffffff;
+  transform: translateY(-3px); /* Hiệu ứng nảy nhẹ khi hover */
+}
+
+/* ================= FOOTER BOTTOM ================= */
+.landing-page-wrapper .footer-bottom {
+  border-top: 1px solid #333333;
+  padding-top: 25px;
+  font-size: 12px;
+  color: #cccccc;
+  line-height: 1.8;
+}
+
+.landing-page-wrapper .footer-bottom p {
+  margin: 0 0 5px 0;
+}
+
+/* ================= RESPONSIVE ================= */
+@media screen and (max-width: 1024px) {
+  .landing-page-wrapper .locator-wrapper {
+    flex-direction: column;
+    padding: 0 20px;
+  }
+  .landing-page-wrapper .locator-left {
+    margin-bottom: 40px;
+  }
+  .landing-page-wrapper .locator-right {
+    width: 100%;
+    flex: none;
+  }
+  .landing-page-wrapper .footer-top {
+    flex-wrap: wrap;
+    padding: 0 20px;
+  }
+  .landing-page-wrapper .footer-col {
+    min-width: 45%;
+    margin-bottom: 30px;
+  }
+  .landing-page-wrapper .nav ul {
+    gap: 10px;
+  }
+  .landing-page-wrapper .nav a {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .landing-page-wrapper .nav ul {
+    display: none; /* In a real app, use a hamburger menu. Hiding for now to keep it simple on mobile */
+  }
+  .landing-page-wrapper .header .header-body .logo {
+    margin-left: 20px;
+  }
+  .landing-page-wrapper .collection-title {
+    font-size: 28px;
+  }
+  .landing-page-wrapper .product-tabs {
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 0 10px;
+  }
+  .landing-page-wrapper .product-card {
+    flex: 0 0 calc(50% - 10px); /* 2 cột trên mobile */
+  }
+  .landing-page-wrapper .carousel-track {
+    flex-wrap: wrap;
+    transform: none !important; /* Vô hiệu hóa slider trên mobile, hiển thị dạng lưới */
+    justify-content: center;
+  }
+  .landing-page-wrapper .nav-btn {
+    display: none;
+  }
+  .landing-page-wrapper .locator-title {
+    font-size: 32px;
+  }
+  .landing-page-wrapper .footer-col {
+    min-width: 100%;
+  }
+}
