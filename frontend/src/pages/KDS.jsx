@@ -4,6 +4,8 @@ import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Wifi, WifiOff, Receipt, Utensils, History, Settings, Timer, Info, FileText, AlertTriangle, CheckCircle, Bell, LogOut } from 'lucide-react';
 import KDSMenu from './KDSMenu';
+import KDSSidebar from '../components/kds/KDSSidebar';
+import KDSHeader from '../components/kds/KDSHeader';
 
 const SOCKET_SERVER_URL = 'http://localhost:5000'; // Fallback, usually window.location.origin
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -25,8 +27,8 @@ const KDS = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnread, setHasUnread] = useState(false); // controls red dot
   const [activeTab, setActiveTab] = useState('Tất cả');
-  
   const [activePage, setActivePage] = useState('orders'); // 'orders' | 'menu'
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -272,133 +274,40 @@ const KDS = () => {
   ).sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
 
   return (
-    <div className="font-sans text-[#1b1c1c] bg-[#FDFCF8] h-screen flex flex-col overflow-hidden">
+    <div className="dashboard-wrapper" style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--dashboard-bg)' }}>
       {/* Network Loss Banner */}
       {!isConnected && (
-        <div className="bg-[#ba1a1a] text-white p-2 text-center font-bold flex items-center justify-center gap-2 shadow-md fixed top-0 left-0 right-0 z-[60]">
-          <WifiOff size={20} /> Mất kết nối dữ liệu. Đang thử kết nối lại...
+        <div className="bg-[var(--dashboard-danger-bg)] text-[var(--dashboard-danger-text)] p-2 text-center font-bold flex items-center justify-center gap-2 shadow-sm absolute top-0 left-0 right-0 z-[60]">
+          <WifiOff size={18} /> Mất kết nối dữ liệu. Đang thử kết nối lại...
         </div>
       )}
 
-      {/* TopAppBar Shell */}
-      <header className={`flex justify-between items-center px-8 h-20 w-full z-50 bg-[#fdfaf0] border-b border-stone-200 shadow-sm transition-all ${!isConnected ? 'top-10' : 'top-0'}`}>
-        <div className="flex items-center gap-6">
-          <span className="text-2xl font-black text-[#4F6F52]" style={{marginLeft: 50}}>The Self Restaurant</span>
-          {isConnected ? (
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#c8ecc8] rounded-full" style = {{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-              <div className="w-2 h-2 rounded-[8px] bg-[#4F6F52] animate-pulse" style={{marginLeft: 4}}></div>
-              <span className="text-[12px] leading-[16px] tracking-[0.05em] font-[600] text-[#2f4e33]" style={{padding: 2, marginRight: 4}}>Đang kết nối</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#ffdad6] rounded-full">
-              <div className="w-2 h-2 rounded-[8px] bg-[#ba1a1a] animate-pulse"></div>
-              <span className="text-[12px] leading-[16px] tracking-[0.05em] font-[600] text-[#93000a]" style={{padding: 2}}>Mất mạng</span>
-            </div>
-          )}
-        </div>
-        
-        {activePage === 'orders' && (
-          <nav className="absolute left-1/2 -translate-x-1/2 flex gap-8 items-center h-full">
-            {['Tất cả', 'Mới nhận', 'Đang chế biến'].map(tab => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative flex flex-col items-center justify-center h-full px-2 transition-all tracking-tight text-[17px] ${
-                  activeTab === tab 
-                    ? 'font-bold text-[#4F6F52]' 
-                    : 'font-medium text-stone-400 hover:text-stone-600'
-                }`}
-              >
-                {tab}
-                {/* Thanh gạch chân màu xanh xuất hiện khi active */}
-                {activeTab === tab && (
-                  <span className="absolute bottom-0 left-0 w-full bg-[#4F6F52] rounded-full"></span>
-                )}
-              </button>
-            ))}
-          </nav>
-        )}
-        
-        <div className="flex items-center gap-6 text-[#4F6F52]">
-          <div className="flex items-center gap-2">
-            <Clock size={24} />
-            <span className="text-[18px] leading-[22px] font-[700] tabular-nums">{new Date(now).toLocaleTimeString('vi-VN')}</span>
-          </div>
-          
-          <div className="relative cursor-pointer hover:bg-stone-100/50 p-2 rounded-full transition-colors" onClick={() => {
-            setShowNotifications(prev => !prev);
-            setHasUnread(false); // Clear red dot when user opens notifications
-          }}>
-            <Bell size={24} />
-            {hasUnread && (
-              <span className="absolute -top-1 -right-1 bg-[#ba1a1a] text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {notifications.length}
-              </span>
-            )}
-            
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-[#ffffff] shadow-[0_12px_16px_rgba(0,0,0,0.06)] border border-[#e4e2e2]/20 rounded-[8px] overflow-hidden z-50" style={{padding: '5px'}}>
-                <div className="p-3 border-b border-[#e4e2e2]/30 font-semibold text-[#37563b]" style={{padding: '5px'}}>Thông báo hệ thống</div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-stone-400 text-sm" style = {{padding: '5px'}}>Không có thông báo mới</div>
-                  ) : (
-                    notifications.map(notif => (
-                      <div key={notif.id} className="p-3 border-b border-stone-100 text-sm" style = {{padding: '5px'}}>
-                        <div className="text-[#1b1c1c]">{notif.message}</div>
-                        <div className="text-xs text-stone-400 mt-1">{notif.time.toLocaleTimeString()}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          <Wifi size={24} className={isConnected ? '' : 'text-[#ba1a1a]'} style = {{marginRight: 20}} />
-        </div>
-      </header>
+      {/* Sidebar */}
+      <KDSSidebar 
+        activePage={activePage} 
+        setActivePage={setActivePage} 
+        handleLogout={handleLogout} 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+      />
 
-      {/* Main Container */}
-      <main className={`flex flex-1 overflow-hidden bg-[#fdfaf0] relative ${!isConnected ? 'pt-[128px]' : 'pt-[80px]'}`}>
-        {/* SideNavBar Shell */}
-        <aside className={`left-0 w-24 flex flex-col justify-between py-6 z-40 bg-[#f6f4ea] border-r border-stone-200 shadow-inner transition-all ${!isConnected ? 'top-[120px] h-[calc(100vh-120px)]' : 'top-20 h-[calc(100vh-80px)]'}`}>
-          <div className="space-y-4">
-            <div 
-              onClick={() => setActivePage('orders')}
-              className={`flex flex-col items-center justify-center rounded-xl mx-2 py-4 shadow-sm transition-opacity cursor-pointer ${
-                activePage === 'orders' ? 'bg-[#c8ecc8] text-[#4f6f52] shadow-lg' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50'
-              }`}
-              style={{marginTop: 25, marginLeft: 10, marginRight: 10, paddingTop: 20, paddingBottom: 20}}
-            >
-              <Receipt size={24} className="mb-1" />
-              <span className="text-[10px] font-bold uppercase tracking-wider" style = {{marginTop: 5}}>Đơn hàng</span>
-            </div>
-            <div 
-              onClick={() => setActivePage('menu')}
-              className={`flex flex-col items-center justify-center rounded-xl mx-2 py-4 shadow-sm transition-all cursor-pointer ${
-                activePage === 'menu' ? 'bg-[#c8ecc8] text-[#4f6f52] shadow-lg' : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50'
-              }`}
-              style={{marginTop: 25, marginLeft: 10, marginRight: 10, paddingTop: 20, paddingBottom: 20}}
-            >
-              <Utensils size={24} className="mb-1" />
-              <span className="text-[10px] font-bold uppercase tracking-wider" style = {{marginTop: 5}}>Thực đơn</span>
-            </div>
-          </div>
-          
-          <div className="mb-6" style={{marginBottom: 20}}>
-            <div 
-              onClick={handleLogout}
-              className="flex flex-col items-center justify-center rounded-xl mx-2 py-4 text-[#ba1a1a] hover:bg-[#ffdad6] shadow-sm transition-all cursor-pointer"
-              style={{marginLeft: 10, marginRight: 10, paddingTop: 20, paddingBottom: 20}}
-            >
-              <LogOut size={24} className="mb-1" />
-              <span className="text-[10px] font-bold uppercase tracking-wider" style={{marginTop: 5}}>Đăng xuất</span>
-            </div>
-          </div>
-        </aside>
+      <div className="dashboard-main flex-1 flex flex-col overflow-hidden relative">
+        <KDSHeader 
+          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          isConnected={isConnected}
+          now={now}
+          hasUnread={hasUnread}
+          notifications={notifications}
+          showNotifications={showNotifications}
+          setShowNotifications={setShowNotifications}
+          setHasUnread={setHasUnread}
+          activePage={activePage}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
 
-        {/* Content Area — offset by sidebar width (96px = w-24) */}
-        <div className="flex-1 overflow-y-auto relative ml-24 pb-24" style={{margin: 20}}>
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto" style={{ padding: '1.5rem' }}>
           {activePage === 'orders' ? (
             activeOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-[70vh] text-center opacity-70">
@@ -494,15 +403,14 @@ const KDS = () => {
               <KDSMenu showToast={showToast} />
             </div>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
 
-      {/* Global Toast Notification */}
+      {/* Toasts */}
       {toast && (
-        <div className={`fixed bottom-28 right-8 p-4 rounded-lg shadow-xl font-semibold flex items-center gap-3 z-50 animate-bounce-in
-          ${toast.type === 'error' ? 'bg-[#ba1a1a] text-white' : 'bg-[#c8ecc8] text-[#03210b] border border-[#acd0ad]'}`} style = {{width: 'fit-content', padding: '10px'}}
-        >
-          {toast.type === 'error' ? <AlertTriangle size={24} /> : <CheckCircle size={24} color="#37563b" />}
+        <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm z-50 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300
+          ${toast.type === 'error' ? 'bg-[var(--dashboard-danger-bg)] text-[var(--dashboard-danger-text)]' : 'bg-[var(--dashboard-success-bg)] text-[var(--dashboard-success-text)]'}`}>
+          {toast.type === 'error' ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
           {toast.message}
         </div>
       )}

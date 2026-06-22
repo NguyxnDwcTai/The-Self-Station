@@ -25,31 +25,42 @@ const POSHeader = ({ title = 'Bảng Điều Khiển' }) => {
   const displayName = user?.fullName || user?.username || 'NguyenDucTai';
 
   return (
-    <header className="flex justify-between items-center w-full px-8 h-[88px] bg-[var(--dashboard-surface)] border-b border-[var(--dashboard-border)] shrink-0 z-10">
-      <div className="flex items-center gap-6">
-        <h1 className="text-2xl font-black text-[var(--dashboard-text-main)] tracking-tight">
+    <header className="app-header" style={{
+      height: '70px',
+      backgroundColor: 'transparent',
+      padding: '0 2rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottom: '1px solid var(--dashboard-border)',
+      flexShrink: 0,
+      zIndex: 10
+    }}>
+      <div className="flex items-center gap-4" style={{ flex: 1 }}>
+        <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: 'var(--dashboard-text-main)' }}>
           {title}
         </h1>
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--dashboard-surface-hover)] rounded-lg text-[var(--dashboard-text-muted)] text-sm font-semibold">
-          <span className="w-2 h-2 rounded-full bg-[var(--dashboard-success-text)]"></span>
-          Kết nối ổn định
-        </div>
       </div>
       
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 px-4 py-2 bg-[var(--dashboard-surface-hover)] rounded-xl font-bold text-[var(--dashboard-text-main)]">
-          <Clock size={18} className="text-[var(--dashboard-text-muted)]" />
-          {timeStr}
+        <div className="flex items-center gap-2 pr-0">
+          <Clock size={18} style={{ color: 'var(--dashboard-text-muted)' }} />
+          <span style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--dashboard-text-main)' }}>
+            {timeStr}
+          </span>
         </div>
-        
-        <div className="flex items-center gap-3 pl-4 border-l border-[var(--dashboard-border)]">
-          <div className="text-right">
-            <div className="text-sm font-bold text-[var(--dashboard-text-main)]">{displayName}</div>
-            <div className="text-xs font-semibold text-[var(--dashboard-text-muted)]">Thu Ngân</div>
+
+        <div className="flex items-center gap-2 pr-0" style={{ cursor: 'pointer' }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            backgroundColor: 'var(--dashboard-primary)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0
+          }}>
+            <User size={18} />
           </div>
-          <div className="w-10 h-10 rounded-full bg-[var(--dashboard-primary-light)] flex items-center justify-center text-[var(--dashboard-primary)] ring-2 ring-[var(--dashboard-surface)] shadow-sm">
-            <User size={20} strokeWidth={2.5} />
-          </div>
+          <span className="hide-on-mobile" style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--dashboard-text-main)' }}>
+            {displayName}
+          </span>
         </div>
       </div>
     </header>

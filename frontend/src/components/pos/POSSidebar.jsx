@@ -10,42 +10,84 @@ const POSSidebar = () => {
     navigate('/login');
   };
 
-  const navClass = ({ isActive }) => 
-    `flex flex-col items-center justify-center gap-1 w-full h-[72px] rounded-xl transition-all ${
-      isActive 
-        ? 'bg-[var(--dashboard-primary)] text-white shadow-md' 
-        : 'text-[var(--dashboard-text-muted)] hover:bg-[var(--dashboard-surface-hover)] hover:text-[var(--dashboard-text-main)]'
-    }`;
+  const menuItems = [
+    { name: 'POS', path: '/pos', icon: Monitor },
+    { name: 'Báo cáo ca', path: '/pos/report', icon: FileText }
+  ];
 
   return (
-    <div className="w-[88px] h-screen bg-[var(--dashboard-surface)] border-r border-[var(--dashboard-border)] flex flex-col items-center py-6 shrink-0 z-20">
-      <div className="w-12 h-12 rounded-xl bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] flex items-center justify-center font-black text-xl mb-8 shadow-sm">
-        TS
+    <aside className="app-sidebar" style={{
+      width: '260px',
+      backgroundColor: 'var(--dashboard-surface)',
+      borderRight: '1px solid var(--dashboard-border)',
+      padding: '1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      zIndex: 50,
+      transition: 'transform 0.3s ease-in-out',
+      flexShrink: 0
+    }}>
+      <div className="flex justify-center items-center relative" style={{ paddingBottom: '2.5rem', width: '100%', textAlign: 'center' }}>
+        <NavLink to="/pos" style={{ textDecoration: 'none' }}>
+           <h1 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--dashboard-primary)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: '1.2' }}>
+             THE SELF STATION
+           </h1>
+        </NavLink>
       </div>
       
-      <div className="flex flex-col gap-4 w-full px-3 flex-1">
-        <NavLink to="/pos" end className={navClass} title="Bảng điều khiển">
-          <Monitor size={24} strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase mt-1 tracking-wider">POS</span>
-        </NavLink>
-        
-        <NavLink to="/pos/report" className={navClass} title="Báo cáo ca">
-          <FileText size={24} strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase mt-1 tracking-wider">Report</span>
-        </NavLink>
-      </div>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <ul className="flex flex-col gap-2" style={{ flex: 1, padding: 0, margin: 0, listStyle: 'none' }}>
+          {menuItems.map((item) => (
+            <li key={item.path}>
+              <NavLink 
+                to={item.path}
+                end={item.path === '/pos'}
+                style={({ isActive }) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  color: isActive ? 'var(--dashboard-primary)' : 'var(--dashboard-text-muted)',
+                  backgroundColor: isActive ? 'var(--dashboard-primary-light)' : 'transparent',
+                  fontWeight: isActive ? '600' : '500',
+                  textDecoration: 'none',
+                  transition: 'background-color 0.2s, color 0.2s'
+                })}
+              >
+                <item.icon size={20} />
+                {item.name}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
 
-      <div className="w-full px-3">
-        <button 
-          onClick={handleLogout}
-          className="flex flex-col items-center justify-center gap-1 w-full h-[72px] rounded-xl text-[var(--dashboard-danger-text)] hover:bg-[var(--dashboard-danger-bg)] transition-all"
-          title="Kết thúc ca"
-        >
-          <LogOut size={24} strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase mt-1 tracking-wider">Thoát</span>
-        </button>
-      </div>
-    </div>
+        <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--dashboard-border)' }}>
+           <button 
+             style={{
+               width: '100%',
+               display: 'flex',
+               alignItems: 'center',
+               gap: '0.75rem',
+               padding: '0.75rem 1rem',
+               borderRadius: '8px',
+               color: 'var(--dashboard-danger-text)',
+               backgroundColor: 'transparent',
+               fontWeight: '600',
+               cursor: 'pointer',
+               transition: 'background-color 0.2s'
+             }}
+             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ffdad6'}
+             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+             onClick={handleLogout}
+           >
+             <LogOut size={20} />
+             Thoát
+           </button>
+        </div>
+      </nav>
+    </aside>
   );
 };
 

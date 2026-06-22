@@ -1,7 +1,3 @@
-/* Hallmark · component: POSCashier · genre: modern-minimal · theme: custom
- * states: default · hover · focus · active · disabled · loading · error · success
- * contrast: pass
- */
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Search, Receipt, User, QrCode, Tag, Coins, CreditCard, Wallet, ArrowRight, AlertTriangle, X, CheckCircle2 } from 'lucide-react';
@@ -124,15 +120,15 @@ const POSCashier = () => {
     <POSLayout title="Bảng Điều Khiển POS">
       <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-6 h-full w-full max-w-[1440px] mx-auto overflow-hidden">
         {/* LEFT PANEL: Bill Details */}
-        <section className="flex flex-col bg-white rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden">
+        <section className="flex flex-col gap-6 h-full overflow-hidden bg-slate-50/80 p-6 rounded-2xl">
           {/* Search Bar */}
-          <div className="p-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 h-11 px-3 bg-white rounded-lg border border-slate-200 focus-within:border-[var(--dashboard-primary)] focus-within:ring-2 focus-within:ring-[var(--dashboard-primary-light)] transition-all min-w-0">
-                <Search size={18} className="text-slate-400 shrink-0" />
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0" style={{ marginTop: '20px', marginLeft: '10px' }}>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 flex items-center gap-3 h-12 px-4 rounded-xl border border-slate-200 focus-within:border-[var(--dashboard-primary)] focus-within:ring-2 focus-within:ring-[var(--dashboard-primary-light)] transition-all bg-slate-50 focus-within:bg-white min-w-0" style={{ padding: '10px' }}>
+                <Search size={20} className="text-slate-400 shrink-0" />
                 <input
                   className="flex-grow h-full bg-transparent text-[var(--dashboard-text-main)] placeholder-slate-400 focus:outline-none text-sm font-medium min-w-0 overflow-hidden text-ellipsis"
-                  placeholder="Quét mã QR hoặc nhập Số bàn (VD: TABLE-01)..."
+                  placeholder="Nhập Số bàn (VD: TABLE-01)..."
                   value={tableSearch}
                   onChange={e => setTableSearch(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && fetchBill(tableSearch)}
@@ -141,100 +137,106 @@ const POSCashier = () => {
               </div>
               <button
                 onClick={() => fetchBill(tableSearch)}
-                className="h-11 px-6 bg-[var(--dashboard-text-main)] hover:bg-black text-white rounded-lg font-bold text-sm transition-colors shrink-0 shadow-sm"
+                className="h-12 px-6 bg-[#eb6933] hover:bg-[#d95a28] active:scale-95 text-white rounded-xl font-bold text-sm transition-all shrink-0 shadow-md flex items-center gap-2 hover:scale-[1.02]" style={{ backgroundColor: "#eb6933", color: "white", padding: '5px' }}
               >
-                Tải Đơn
+                Tìm kiếm
               </button>
             </div>
-            {billError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-2 font-semibold px-1">{billError}</p>}
+            {billError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-3 font-semibold px-2">{billError}</p>}
           </div>
 
-          {bill ? (
-            <>
-              {/* Bill Header */}
-              <div className="px-6 py-4 flex justify-between items-start shrink-0 border-b border-dashed border-slate-200">
-                <div>
-                  <h2 className="text-xl font-bold leading-tight text-slate-800 mb-1">
-                    {bill.tableName}
-                  </h2>
-                  {bill.customer && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] p-0.5 rounded">
-                        <User size={12} strokeWidth={2.5} />
+          {/* Main Content Area */}
+          <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style={{ marginTop: '20px', marginLeft: '10px' }}>
+            {bill ? (
+              <>
+                {/* Bill Header */}
+                <div className="px-6 py-5 flex justify-between items-start shrink-0 border-b border-dashed border-slate-200 bg-slate-50/30" style={{ padding: '10px' }}>
+                  <div>
+                    <h2 className="text-2xl font-bold leading-tight text-slate-800 mb-1.5">
+                      {bill.tableName}
+                    </h2>
+                    {bill.customer && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] p-1 rounded-md">
+                          <User size={14} strokeWidth={2.5} />
+                        </div>
+                        <span className="font-bold text-sm text-slate-700">{bill.customer.fullName}</span>
+                        <span className="bg-[var(--dashboard-primary)] text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ml-1">
+                          Thành viên
+                        </span>
                       </div>
-                      <span className="font-bold text-xs text-slate-700">{bill.customer.fullName}</span>
-                      <span className="bg-[var(--dashboard-primary)] text-white px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ml-1">
-                        Thành viên
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-slate-600 text-xs font-bold uppercase tracking-wider">
+                      Mã Đơn: #{bill.orderID?.slice(-6)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="flex-1 overflow-y-auto px-6 py-4" style={{ padding: '10px' }}>
+                  {Object.values(bill.items.reduce((acc, item) => {
+                    if (!acc[item.itemID]) {
+                      acc[item.itemID] = { ...item };
+                    } else {
+                      acc[item.itemID].quantity += item.quantity;
+                      acc[item.itemID].subtotal += item.subtotal;
+                    }
+                    return acc;
+                  }, {})).map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center py-4 border-b border-slate-100 last:border-0 group hover:bg-slate-50 -mx-3 px-3 rounded-xl transition-colors" style={{ paddingBottom: '5px' }}>
+                      <div>
+                        <span className="text-base font-bold text-slate-800 block group-hover:text-[var(--dashboard-primary)] transition-colors" style={{ paddingBottom: '5px' }}>{item.itemName}</span>
+                        <span className="text-sm font-semibold text-slate-400 mt-0.5 block">Số lượng: x{item.quantity}</span>
+                      </div>
+                      <span className="text-base font-bold text-slate-800">{item.subtotal.toLocaleString()} ₫</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total Area */}
+                <div className="px-6 py-5 bg-slate-50/80 border-t border-slate-200 shrink-0">
+                  {voucherResult && (
+                    <div className="flex justify-between items-center text-sm mb-3">
+                      <span className="font-semibold text-slate-500 flex items-center gap-2">
+                        <Tag size={16} /> Khuyến mãi ({voucherCode})
                       </span>
+                      <span className="text-[var(--dashboard-primary)] font-bold text-base">- {voucherResult.discountAmount.toLocaleString()} ₫</span>
                     </div>
                   )}
-                </div>
-                <div className="text-right">
-                  <span className="inline-block px-2 py-0.5 bg-slate-50 rounded text-slate-500 text-xs font-bold uppercase tracking-wider">
-                    Mã Đơn: #{bill.orderID?.slice(-6)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Items List */}
-              <div className="flex-1 overflow-y-auto px-6 py-2">
-                {Object.values(bill.items.reduce((acc, item) => {
-                  if (!acc[item.itemID]) {
-                    acc[item.itemID] = { ...item };
-                  } else {
-                    acc[item.itemID].quantity += item.quantity;
-                    acc[item.itemID].subtotal += item.subtotal;
-                  }
-                  return acc;
-                }, {})).map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center py-3 border-b border-slate-100 last:border-0 group hover:bg-slate-50 -mx-2 px-2 rounded-lg transition-colors">
-                    <div>
-                      <span className="text-sm font-bold text-slate-800 block group-hover:text-[var(--dashboard-primary)] transition-colors">{item.itemName}</span>
-                      <span className="text-xs font-semibold text-slate-400">Số lượng: x{item.quantity}</span>
+                  <div className="flex justify-between items-center" style={{ padding: '10px' }}>
+                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Cần thanh toán</span>
+                    <div className="flex items-baseline gap-1 text-slate-800">
+                      <span className="text-3xl font-black tracking-tight">
+                        {finalTotal.toLocaleString()}
+                      </span>
+                      <span className="text-lg font-bold text-slate-500">₫</span>
                     </div>
-                    <span className="text-sm font-bold text-slate-800">{item.subtotal.toLocaleString()} ₫</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Total Area */}
-              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
-                {voucherResult && (
-                  <div className="flex justify-between items-center text-sm mb-2">
-                    <span className="font-semibold text-slate-500 flex items-center gap-1.5">
-                      <Tag size={14} /> Khuyến mãi ({voucherCode})
-                    </span>
-                    <span className="text-[var(--dashboard-primary)] font-bold">- {voucherResult.discountAmount.toLocaleString()} ₫</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Cần thanh toán</span>
-                  <div className="flex items-baseline gap-0.5 text-slate-800">
-                    <span className="text-2xl font-black tracking-tight">
-                      {finalTotal.toLocaleString()}
-                    </span>
-                    <span className="text-base font-bold text-slate-500">₫</span>
                   </div>
                 </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center h-full">
+                <p className="text-xl font-bold text-slate-800" style={{ padding: '5px' }}>Chưa có hóa đơn nào được chọn</p>
+                <p className="text-sm text-slate-400 mt-2 max-w-sm" style={{ padding: '5px' }}>Vui lòng quét QR hoặc nhập số bàn ở thanh tìm kiếm phía trên để tải hóa đơn và tiếp tục thanh toán.</p>
+                <button
+                  onClick={() => document.querySelector('input[placeholder*="Nhập Số bàn"]')?.focus()}
+                  className="mt-6 px-6 py-2.5 rounded-xl border-2 border-[var(--dashboard-primary)] text-[var(--dashboard-primary)] font-bold text-sm hover:bg-[var(--dashboard-primary-light)] transition-colors active:scale-95" style={{ padding: '5px' }}
+                >
+                  Nhập số bàn thủ công
+                </button>
               </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-3 py-12">
-              <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-2 border border-slate-100">
-                <Receipt size={32} strokeWidth={1.5} />
-              </div>
-              <p className="text-lg font-bold text-slate-700">Chưa có hóa đơn nào được chọn</p>
-              <p className="text-sm text-slate-400">Vui lòng quét QR hoặc nhập số bàn để tiếp tục.</p>
-            </div>
-          )}
+            )}
+          </div>
         </section>
 
         {/* RIGHT PANEL: Actions */}
-        <section className="flex flex-col h-full overflow-hidden">
+        <section className="flex flex-col h-full overflow-hidden" style={{ marginTop: '20px', marginRight: '35px' }}>
           <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-3 pr-1">
             {/* 1. Customer Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }}>
+              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <User size={16} /> Khách Hàng Thành Viên
               </h2>
               {customer ? (
@@ -253,30 +255,30 @@ const POSCashier = () => {
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2" style={{ padding: '5px' }}>
                   <input
-                    className="flex-1 h-[42px] px-3 bg-slate-50 text-[var(--dashboard-text-main)] rounded-lg border border-slate-200 focus:outline-none focus:border-[var(--dashboard-primary)] focus:bg-white transition-all text-sm placeholder:text-xs placeholder-slate-400 font-medium"
+                    className="flex-1 h-[42px] px-3 bg-slate-50 text-[var(--dashboard-text-main)] rounded-lg border border-slate-200 focus:outline-none focus:border-[var(--dashboard-primary)] focus:bg-white transition-all text-sm placeholder:text-xs placeholder-slate-400 font-medium" style={{ padding: '5px' }}
                     placeholder="Nhập SĐT khách hàng..."
                     value={customerQuery}
                     onChange={e => setCustomerQuery(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleFindCustomer()}
                   />
-                  <button onClick={handleFindCustomer} className="h-[42px] px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-1.5 border border-slate-200">
+                  <button onClick={handleFindCustomer} className="h-[42px] px-4 bg-slate-50 hover:bg-[#d95a28] active:scale-95 text-slate-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-1.5 border border-slate-200" style={{ backgroundColor: '#eb6933', color: 'white', padding: '5px' }}>
                     <QrCode size={16} /> Tìm
                   </button>
                 </div>
               )}
-              {customerError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-2 font-semibold">{customerError}</p>}
+              {customerError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-2 font-semibold" style={{ padding: '5px' }}>{customerError}</p>}
             </div>
 
             {/* 2. Voucher Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }}>
+              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <Tag size={16} /> Mã Khuyến Mãi
               </h2>
               <div className="flex gap-2">
                 <input
-                  className="flex-1 h-[42px] px-3 bg-slate-50 text-[var(--dashboard-text-main)] rounded-lg border border-slate-200 focus:outline-none focus:border-[var(--dashboard-primary)] focus:bg-white transition-all text-sm placeholder:text-xs placeholder-slate-400 font-medium"
+                  className="flex-1 h-[42px] px-3 bg-slate-50 text-[var(--dashboard-text-main)] rounded-lg border border-slate-200 focus:outline-none focus:border-[var(--dashboard-primary)] focus:bg-white transition-all text-sm placeholder:text-xs placeholder-slate-400 font-medium" style={{ padding: '5px' }}
                   placeholder="Nhập mã ưu đãi (nếu có)..."
                   value={voucherCode}
                   onChange={e => setVoucherCode(e.target.value)}
@@ -285,7 +287,7 @@ const POSCashier = () => {
                 <button
                   onClick={handleValidateVoucher}
                   disabled={!bill}
-                  className="h-[42px] px-4 bg-[var(--dashboard-text-main)] hover:bg-black disabled:opacity-50 disabled:hover:bg-[var(--dashboard-text-main)] text-white rounded-lg font-bold text-sm transition-colors shrink-0"
+                  className="h-[42px] px-4 bg-[var(--dashboard-text-main)] hover:bg-black disabled:opacity-50 disabled:hover:bg-[var(--dashboard-text-main)] text-white rounded-lg font-bold text-sm transition-colors shrink-0" style={{ backgroundColor: '#eb6933', color: 'white', padding: '5px' }}
                 >
                   Áp dụng
                 </button>
@@ -299,8 +301,8 @@ const POSCashier = () => {
             </div>
 
             {/* 3. Payment Method Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }}>
+              <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <CreditCard size={16} /> Hình Thức Thanh Toán
               </h2>
               <div className="grid grid-cols-3 gap-2">
@@ -312,11 +314,10 @@ const POSCashier = () => {
                   <button
                     key={m.value}
                     onClick={() => setPaymentMethod(m.value)}
-                    className={`h-11 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
-                      paymentMethod === m.value
-                        ? 'border-[var(--dashboard-primary)] bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] font-bold shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
+                    className={`h-11 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${paymentMethod === m.value
+                      ? 'border-[var(--dashboard-primary)] bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] font-bold shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
                   >
                     <m.icon size={16} />
                     <span>{m.label}</span>
@@ -326,9 +327,9 @@ const POSCashier = () => {
             </div>
 
             {/* 4. Cash Flow Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-4" style={{ padding: '5px' }}>
               <div>
-                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider block mb-2">Tiền Khách Đưa</span>
+                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider block mb-2" style={{ padding: '5px' }}>Tiền Khách Đưa</span>
                 <div className="flex items-center justify-end w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-[var(--dashboard-primary)] transition-all">
                   <input
                     type="number"
@@ -338,50 +339,166 @@ const POSCashier = () => {
                     disabled={paymentMethod !== 'CASH'}
                     placeholder="0"
                   />
-                  <span className="ml-1 text-lg font-bold text-slate-500">đ</span>
+                  <span className="ml-1 text-lg font-bold text-slate-500" style={{ padding: '5px' }}>đ</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider">Tiền Thừa Trả Khách</span>
+                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider" style={{ padding: '5px' }}>Tiền Thừa Trả Khách</span>
                 <div className="flex items-baseline gap-0.5">
                   <span className={`text-2xl font-bold tracking-tight ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`}>
                     {change.toLocaleString()}
                   </span>
-                  <span className={`text-lg font-bold ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`}>đ</span>
+                  <span className={`text-lg font-bold ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`} style={{ padding: '5px' }}>đ</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 5. Checkout Button / Cooking Warning */}
-          <div className="pt-3 border-t border-slate-100 bg-white lg:bg-transparent shrink-0">
+          <div style={{
+            flexShrink: 0,
+            borderTop: '1.5px solid #f1f5f9',
+            paddingTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}>
+            {/* Total Summary Bar */}
+            {bill && (
+              <div style={{
+                background: 'linear-gradient(135deg, #fff5f0 0%, #fff0ea 100%)',
+                border: '1.5px solid rgba(235,105,51,0.2)',
+                borderRadius: '14px',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#eb6933', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Tổng cần thanh toán</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em', lineHeight: 1 }}>{finalTotal.toLocaleString()}</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#64748b' }}>₫</span>
+                  </div>
+                </div>
+                {paymentMethod === 'CASH' && parseFloat(cashReceived || 0) >= finalTotal && (
+                  <div style={{
+                    textAlign: 'right',
+                    background: '#dcfce7',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '10px',
+                    padding: '8px 14px',
+                  }}>
+                    <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Tiền thối</p>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#15803d', letterSpacing: '-0.01em' }}>{change.toLocaleString()} ₫</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {bill && bill.items?.some(item => item.status === 'WAITING' || item.status === 'COOKING') ? (
-              <div className="w-full text-center p-4 bg-[var(--dashboard-warning-bg)] text-[var(--dashboard-warning-text)] rounded-lg font-semibold border border-yellow-200 flex items-center justify-center gap-3">
-                 <AlertTriangle size={20} strokeWidth={2.5} className="shrink-0 text-yellow-600" />
-                 <span className="text-left text-xs leading-tight">Chưa thể thanh toán do có món ăn đang <br/> {bill.items.some(i => i.status === 'WAITING') ? '"Chờ tiếp nhận"' : '"Đang chế biến"'}. Vui lòng đợi bếp hoàn thành!</span>
+              <div style={{
+                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                border: '1.5px solid #fcd34d',
+                borderRadius: '14px',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                boxShadow: '0 4px 16px rgba(251, 191, 36, 0.12)',
+              }}>
+                <div style={{
+                  flexShrink: 0,
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #fef08a, #fde68a)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(251, 191, 36, 0.3)',
+                }}>
+                  <AlertTriangle size={20} strokeWidth={2.5} style={{ color: '#d97706' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '0.72rem', fontWeight: 800, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Chưa thể thanh toán</p>
+                  <p style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 500, lineHeight: 1.5 }}>
+                    Còn món {bill.items.some(i => i.status === 'WAITING') ? <strong>"Chờ tiếp nhận"</strong> : <strong>"Đang chế biến"</strong>}. Đợi bếp hoàn thành!
+                  </p>
+                </div>
               </div>
             ) : (
               <button
                 onClick={handleCheckout}
                 disabled={!bill || loading}
-                className={`w-full h-[50px] rounded-lg text-base font-bold uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 select-none ${
-                  !bill || loading
-                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                    : 'bg-[var(--dashboard-primary)] text-white hover:bg-[var(--dashboard-primary-hover)] active:scale-[0.98] active:translate-y-[1.5px] cursor-pointer shadow-[0_4px_12px_rgba(235,105,51,0.2)]'
-                }`}
+                style={(!bill || loading) ? {
+                  width: '100%',
+                  height: '56px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #e2e8f0',
+                  background: '#f8fafc',
+                  color: '#94a3b8',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  cursor: 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  transition: 'all 0.2s',
+                  marginBottom: '30px',
+                } : {
+                  width: '100%',
+                  height: '56px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #f97316 0%, #eb6933 50%, #d95a28 100%)',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 6px 20px rgba(235, 105, 51, 0.35), 0 2px 8px rgba(235, 105, 51, 0.2)',
+                  transition: 'all 0.2s',
+                  marginBottom: '30px',
+                }}
+                onMouseEnter={e => { if (bill && !loading) e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(235, 105, 51, 0.45)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = bill && !loading ? '0 6px 20px rgba(235, 105, 51, 0.35), 0 2px 8px rgba(235, 105, 51, 0.2)' : 'none'; }}
+                onMouseDown={e => { if (bill && !loading) e.currentTarget.style.transform = 'translateY(1px) scale(0.99)'; }}
+                onMouseUp={e => { if (bill && !loading) e.currentTarget.style.transform = 'translateY(0)'; }}
               >
-                <span>{loading ? 'ĐANG XỬ LÝ...' : 'THANH TOÁN HÓA ĐƠN'}</span>
+                {loading ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={20} strokeWidth={2.5} />
+                    Thanh toán hóa đơn
+                  </>
+                )}
               </button>
             )}
           </div>
+
         </section>
       </div>
 
       {/* Toast */}
       {toast && (
         <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm z-50 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300
-          ${toast.type === 'error' ? 'bg-[var(--dashboard-danger-text)] text-white' : 'bg-[var(--dashboard-success-text)] text-white'}`}>
+          ${toast.type === 'error' ? 'bg-[var(--dashboard-danger-text)] text-white' : 'bg-[var(--dashboard-success-text)] text-white'}`} style={{ padding: '5px' }}>
           {toast.type === 'error' ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
           {toast.msg}
         </div>
