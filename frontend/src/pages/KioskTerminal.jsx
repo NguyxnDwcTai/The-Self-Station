@@ -230,7 +230,11 @@ export default function KioskTerminal() {
     try {
       const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       const itemsPayload = cart.map(i => ({ itemID: i.itemID, quantity: i.quantity, unitPrice: i.price }));
-      const order = await axios.post(`${API_BASE}/orders`, { tableID: "TB_01", totalAmount, items: itemsPayload });
+      // Lấy tableID từ tham số URL, ví dụ: /kiosk?table=TB_02. Mặc định là TB_01 nếu không có param.
+      const queryParams = new URLSearchParams(window.location.search);
+      const tableID = queryParams.get('table') || "TB_01";
+      
+      const order = await axios.post(`${API_BASE}/orders`, { tableID, totalAmount, items: itemsPayload });
       
       setOrderTracking({ ...order.data, startTime: Date.now() });
       setCart([]); // Xóa giỏ hàng ảo vì orderTracking đã quản lý

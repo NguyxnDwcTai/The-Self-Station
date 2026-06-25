@@ -24,6 +24,9 @@ const POSCashier = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4000);
@@ -61,6 +64,28 @@ const POSCashier = () => {
       }
     } catch (e) {
       setCustomerError(e.response?.data?.message || 'Không tìm thấy thành viên');
+    }
+  };
+
+  const handleRegisterCustomer = async () => {
+    if (!newCustomerName.trim() || !customerQuery.trim()) {
+      showToast('Vui lòng nhập tên khách hàng', 'error');
+      return;
+    }
+    setIsRegistering(true);
+    try {
+      const res = await axios.post(`${API}/customer/register`, {
+        phone: customerQuery.trim(),
+        fullName: newCustomerName.trim(),
+        tableID: bill?.tableID
+      });
+      setCustomer(res.data.customer);
+      setCustomerError('');
+      showToast(`Đăng ký thành công! Đã gắn thẻ: ${res.data.customer.fullName}`);
+    } catch (e) {
+      showToast(e.response?.data?.message || 'Lỗi đăng ký thành viên', 'error');
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -123,7 +148,7 @@ const POSCashier = () => {
         <section className="flex flex-col gap-6 h-full overflow-hidden bg-slate-50/80 p-6 rounded-2xl">
           {/* Search Bar */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0" style={{ marginTop: '20px', marginLeft: '10px' }}>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4" style={{ padding: '10px' }}>
               <div className="flex-1 flex items-center gap-3 h-12 px-4 rounded-xl border border-slate-200 focus-within:border-[var(--dashboard-primary)] focus-within:ring-2 focus-within:ring-[var(--dashboard-primary-light)] transition-all bg-slate-50 focus-within:bg-white min-w-0" style={{ padding: '10px' }}>
                 <Search size={20} className="text-slate-400 shrink-0" />
                 <input
@@ -137,12 +162,31 @@ const POSCashier = () => {
               </div>
               <button
                 onClick={() => fetchBill(tableSearch)}
-                className="h-12 px-6 bg-[#eb6933] hover:bg-[#d95a28] active:scale-95 text-white rounded-xl font-bold text-sm transition-all shrink-0 shadow-md flex items-center gap-2 hover:scale-[1.02]" style={{ backgroundColor: "#eb6933", color: "white", padding: '5px' }}
+                style={{
+                  height: '46px',
+                  padding: '0 22px',
+                  background: 'linear-gradient(135deg, #f97316, #eb6933)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: 'white',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  boxShadow: '0 4px 16px rgba(235,105,51,0.4)',
+                  transition: 'all 0.2s',
+                  letterSpacing: '0.02em',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 Tìm kiếm
               </button>
             </div>
-            {billError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-3 font-semibold px-2">{billError}</p>}
+            {billError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-3 font-semibold px-2" style={{ paddingLeft: '10px', paddingBottom: '10px' }}>{billError}</p>}
           </div>
 
           {/* Main Content Area */}
@@ -219,7 +263,6 @@ const POSCashier = () => {
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center h-full">
                 <p className="text-xl font-bold text-slate-800" style={{ padding: '5px' }}>Chưa có hóa đơn nào được chọn</p>
-                <p className="text-sm text-slate-400 mt-2 max-w-sm" style={{ padding: '5px' }}>Vui lòng quét QR hoặc nhập số bàn ở thanh tìm kiếm phía trên để tải hóa đơn và tiếp tục thanh toán.</p>
                 <button
                   onClick={() => document.querySelector('input[placeholder*="Nhập Số bàn"]')?.focus()}
                   className="mt-6 px-6 py-2.5 rounded-xl border-2 border-[var(--dashboard-primary)] text-[var(--dashboard-primary)] font-bold text-sm hover:bg-[var(--dashboard-primary-light)] transition-colors active:scale-95" style={{ padding: '5px' }}
@@ -235,19 +278,19 @@ const POSCashier = () => {
         <section className="flex flex-col h-full overflow-hidden" style={{ marginTop: '20px', marginRight: '35px' }}>
           <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-3 pr-1">
             {/* 1. Customer Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }}>
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }} >
               <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <User size={16} /> Khách Hàng Thành Viên
               </h2>
               {customer ? (
-                <div className="flex items-center justify-between bg-[var(--dashboard-primary-light)] border border-[rgba(235,105,51,0.15)] px-4 py-3 rounded-lg">
+                <div className="flex items-center justify-between bg-[var(--dashboard-primary-light)] border border-[rgba(235,105,51,0.15)] px-4 py-3 rounded-lg" style={{ padding: '5px', margin: '5px' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center text-[var(--dashboard-primary)] font-bold text-base shadow-sm">
                       {customer.fullName.charAt(0)}
                     </div>
                     <div>
                       <p className="font-bold text-[var(--dashboard-text-main)] text-sm leading-tight">{customer.fullName}</p>
-                      <p className="text-xs font-semibold text-[var(--dashboard-primary)] mt-0.5">⭐ {customer.rewardPoints} điểm tích lũy</p>
+                      <p className="text-xs font-semibold text-[var(--dashboard-primary)] mt-0.5">{customer.rewardPoints} điểm tích lũy</p>
                     </div>
                   </div>
                   <button onClick={() => { setCustomer(null); setCustomerQuery(''); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[var(--dashboard-danger-bg)] text-[var(--dashboard-text-muted)] hover:text-[var(--dashboard-danger-text)] transition-colors">
@@ -263,16 +306,76 @@ const POSCashier = () => {
                     onChange={e => setCustomerQuery(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleFindCustomer()}
                   />
-                  <button onClick={handleFindCustomer} className="h-[42px] px-4 bg-slate-50 hover:bg-[#d95a28] active:scale-95 text-slate-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-1.5 border border-slate-200" style={{ backgroundColor: '#eb6933', color: 'white', padding: '5px' }}>
+                  <button
+                    onClick={handleFindCustomer}
+                    style={{
+                      height: '42px',
+                      padding: '0 16px',
+                      background: 'linear-gradient(135deg, #f97316, #eb6933)',
+                      border: 'none',
+                      borderRadius: '10px',
+                      color: 'white',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 16px rgba(235,105,51,0.4)',
+                      transition: 'all 0.2s',
+                      letterSpacing: '0.02em',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
                     <QrCode size={16} /> Tìm
                   </button>
                 </div>
               )}
-              {customerError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-2 font-semibold" style={{ padding: '5px' }}>{customerError}</p>}
+              {customerError && (
+                <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg" style={{ padding: '10px', margin: '5px' }}>
+                  <p className="text-[var(--dashboard-danger-text)] text-xs font-semibold mb-2" style={{ paddingBottom: '5px' }}>{customerError}</p>
+                  <p className="text-xs text-slate-500 font-medium mb-2" style={{ paddingBottom: '5px' }}>Chưa có tài khoản? Đăng ký ngay để tích điểm:</p>
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 h-[36px] px-3 bg-white text-slate-800 rounded-md border border-slate-300 focus:outline-none focus:border-[var(--dashboard-primary)] transition-all text-xs placeholder-slate-400 font-medium" style={{ padding: '5px' }}
+                      placeholder="Nhập tên khách hàng..."
+                      value={newCustomerName}
+                      onChange={e => setNewCustomerName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleRegisterCustomer()}
+                    />
+                    <button
+                      onClick={handleRegisterCustomer}
+                      disabled={isRegistering}
+                      style={{
+                        height: '36px',
+                        padding: '0 12px',
+                        background: isRegistering ? '#e2e8f0' : 'linear-gradient(135deg, #10b981, #059669)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: isRegistering ? '#94a3b8' : 'white',
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                        cursor: isRegistering ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.2s',
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={e => { if (!isRegistering) e.currentTarget.style.transform = 'translateY(-1px)' }}
+                      onMouseLeave={e => { if (!isRegistering) e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                      {isRegistering ? 'Đang ĐK...' : 'Đăng ký & Tích điểm'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 2. Voucher Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '5px' }}>
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)]" style={{ padding: '10px' }}>
               <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <Tag size={16} /> Mã Khuyến Mãi
               </h2>
@@ -287,7 +390,26 @@ const POSCashier = () => {
                 <button
                   onClick={handleValidateVoucher}
                   disabled={!bill}
-                  className="h-[42px] px-4 bg-[var(--dashboard-text-main)] hover:bg-black disabled:opacity-50 disabled:hover:bg-[var(--dashboard-text-main)] text-white rounded-lg font-bold text-sm transition-colors shrink-0" style={{ backgroundColor: '#eb6933', color: 'white', padding: '5px' }}
+                  style={{
+                    height: '42px',
+                    padding: '0 16px',
+                    background: !bill ? '#e2e8f0' : 'linear-gradient(135deg, #f97316, #eb6933)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: !bill ? '#94a3b8' : 'white',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    cursor: !bill ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: !bill ? 'none' : '0 4px 16px rgba(235,105,51,0.4)',
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.02em',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={e => { if (bill) e.currentTarget.style.transform = 'translateY(-1px)' }}
+                  onMouseLeave={e => { if (bill) e.currentTarget.style.transform = 'translateY(0)' }}
                 >
                   Áp dụng
                 </button>
@@ -305,53 +427,110 @@ const POSCashier = () => {
               <h2 className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2" style={{ padding: '5px' }}>
                 <CreditCard size={16} /> Hình Thức Thanh Toán
               </h2>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {[
                   { value: 'CASH', icon: Coins, label: 'Tiền mặt' },
                   { value: 'CARD', icon: CreditCard, label: 'Thẻ tín dụng' },
                   { value: 'WALLET', icon: Wallet, label: 'Ví điện tử' },
-                ].map(m => (
-                  <button
-                    key={m.value}
-                    onClick={() => setPaymentMethod(m.value)}
-                    className={`h-11 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${paymentMethod === m.value
-                      ? 'border-[var(--dashboard-primary)] bg-[var(--dashboard-primary-light)] text-[var(--dashboard-primary)] font-bold shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700'
-                      }`}
-                  >
-                    <m.icon size={16} />
-                    <span>{m.label}</span>
-                  </button>
-                ))}
+                ].map(m => {
+                  const isActive = paymentMethod === m.value;
+                  return (
+                    <button
+                      key={m.value}
+                      onClick={() => setPaymentMethod(m.value)}
+                      className={`relative h-[72px] rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 overflow-hidden ${isActive
+                          ? 'text-white z-10'
+                          : 'border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 hover:shadow-sm'
+                        }`}
+                      style={isActive ? {
+                        background: 'linear-gradient(135deg, #f97316, #eb6933)',
+                        boxShadow: '0 6px 16px rgba(235,105,51,0.35)',
+                        transform: 'scale(1.02)',
+                        border: '1px solid transparent'
+                      } : {}}
+                    >
+                      <m.icon size={20} className={`transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} />
+                      <span className={`text-[11px] font-bold tracking-wide uppercase ${isActive ? 'opacity-100' : 'opacity-80'}`}>
+                        {m.label}
+                      </span>
+                      {isActive && (
+                        <div className="absolute top-1.5 right-1.5 text-white/90">
+                          <CheckCircle2 size={14} weight="fill" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* 4. Cash Flow Card */}
-            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-4" style={{ padding: '5px' }}>
-              <div>
-                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider block mb-2" style={{ padding: '5px' }}>Tiền Khách Đưa</span>
-                <div className="flex items-center justify-end w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-[var(--dashboard-primary)] transition-all">
-                  <input
-                    type="number"
-                    className="w-full bg-transparent text-right font-bold text-lg text-slate-800 focus:outline-none placeholder-slate-400"
-                    value={cashReceived}
-                    onChange={e => setCashReceived(e.target.value)}
-                    disabled={paymentMethod !== 'CASH'}
-                    placeholder="0"
-                  />
-                  <span className="ml-1 text-lg font-bold text-slate-500" style={{ padding: '5px' }}>đ</span>
-                </div>
-              </div>
+            {/* 4. Cash Flow Card / QR Code */}
+            <div className="bg-white p-5 rounded-lg border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col gap-4" style={{ padding: '10px' }}>
+              {paymentMethod === 'CASH' ? (
+                <>
+                  <div>
+                    <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider block mb-2">Tiền Khách Đưa</span>
+                    <div className="flex items-center justify-end w-full h-[42px] px-3 bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-[var(--dashboard-primary)] transition-all">
+                      <input
+                        type="number"
+                        className="w-full bg-transparent text-right font-bold text-lg text-slate-800 focus:outline-none placeholder-slate-400"
+                        value={cashReceived}
+                        onChange={e => setCashReceived(e.target.value)}
+                        placeholder="0"
+                      />
+                      <span className="ml-1 text-lg font-bold text-slate-500">đ</span>
+                    </div>
+                  </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-                <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider" style={{ padding: '5px' }}>Tiền Thừa Trả Khách</span>
-                <div className="flex items-baseline gap-0.5">
-                  <span className={`text-2xl font-bold tracking-tight ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`}>
-                    {change.toLocaleString()}
-                  </span>
-                  <span className={`text-lg font-bold ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`} style={{ padding: '5px' }}>đ</span>
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                    <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider">Tiền Thừa Trả Khách</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className={`text-2xl font-bold tracking-tight ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`}>
+                        {change.toLocaleString()}
+                      </span>
+                      <span className={`text-lg font-bold ${isChangePositive ? 'text-green-600' : 'text-slate-400'}`}>đ</span>
+                    </div>
+                  </div>
+                </>
+              ) : paymentMethod === 'CARD' ? (
+                <div className="flex flex-col items-center justify-center text-center gap-3 py-2">
+                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 border-4 border-blue-100">
+                    <CreditCard size={32} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-800 mb-1">Thanh toán qua Thẻ</h3>
+                    <p className="text-xs text-slate-500 max-w-[220px] mx-auto">Vui lòng yêu cầu khách hàng chạm hoặc quẹt thẻ trên thiết bị mPOS/SmartPOS.</p>
+                  </div>
+                  {bill && (
+                    <div className="mt-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg flex items-baseline gap-1">
+                      <span className="text-sm font-semibold">Cần thu:</span>
+                      <span className="font-bold text-lg">{finalTotal.toLocaleString()} đ</span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center gap-2">
+                  <span className="text-xs font-bold text-[var(--dashboard-text-muted)] uppercase tracking-wider">Quét Mã QR (Ví / Ngân Hàng)</span>
+                  {bill ? (
+                    <div className="p-2 bg-white border-2 border-dashed border-[var(--dashboard-primary)] rounded-xl relative group">
+                      <img
+                        src={`https://img.vietqr.io/image/MB-5005005556556-compact2.png?amount=${finalTotal}&addInfo=Thanh toan don hang ${bill.orderID?.slice(-6)}&accountName=THE SELF STATION`}
+                        alt="QR Code"
+                        className="w-40 h-40 object-contain transition-transform group-hover:scale-105 duration-300"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-40 h-40 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400">
+                      <QrCode size={40} opacity={0.5} />
+                    </div>
+                  )}
+                  <div className="text-sm mt-1">
+                    <p className="font-bold text-slate-800">MBBank - 5005005556556</p>
+                    <p className="font-bold text-[var(--dashboard-primary)] text-xl mt-1">{finalTotal.toLocaleString()} đ</p>
+                  </div>
+                  <p className="text-[11px] font-medium text-slate-400 mt-1 max-w-[200px]">Hỗ trợ quét mã bằng MoMo, ZaloPay, VNPay và các App Ngân hàng</p>
+                </div>
+              )}
             </div>
           </div>
 

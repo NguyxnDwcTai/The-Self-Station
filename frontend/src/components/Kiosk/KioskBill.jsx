@@ -25,8 +25,7 @@ export default function KioskBill({ orderTracking, setView, isReadOnly }) {
      const price = parseFloat(item.unitPrice || item.price || item.menuItem?.price || 0);
      return acc + (price * item.quantity);
    }, 0);
-   const tax = subTotal * 0.08; // 8% VAT
-   const total = subTotal + tax;
+   const total = subTotal;
 
    return (
      <div className="flex-1 bg-[#fdfaf0] flex flex-col h-full font-sans">
@@ -89,14 +88,6 @@ export default function KioskBill({ orderTracking, setView, isReadOnly }) {
                )}
 
                <div className="mt-8 pt-8 border-t-2 border-dashed border-[#ebe8dc]" style = {{marginTop: '15px'}}>
-                  <div className="flex justify-between items-center mb-4 text-gray-500" style = {{marginLeft: '15px', marginRight: '15px'}}>
-                     <span className="font-bold text-lg">Tạm tính</span>
-                     <span className="font-bold text-lg">{subTotal.toLocaleString('vi-VN')}đ</span>
-                  </div>
-                  <div className="flex justify-between items-center mb-6 text-gray-500" style = {{marginLeft: '15px', marginRight: '15px'}}>
-                     <span className="font-bold text-lg">Thuế VAT (8%)</span>
-                     <span className="font-bold text-lg">{tax.toLocaleString('vi-VN')}đ</span>
-                  </div>
                   <div className="flex justify-between items-center text-[#383831] mt-6 pt-6 border-t border-[#f6f4e8]" style = {{marginLeft: '15px', marginRight: '15px'}}>
                      <span className="font-black text-2xl" >Tổng thanh toán</span>
                      <span className="font-black text-4xl text-[#9d4f00]">{Math.round(total).toLocaleString('vi-VN')}đ</span>
@@ -142,8 +133,8 @@ export default function KioskBill({ orderTracking, setView, isReadOnly }) {
 
             <div className="bg-[#e8fbe8] rounded-[8px] p-8 mt-8 flex flex-col relative overflow-hidden group" style = {{marginTop: '20px', padding: '15px'}}>
                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl -mr-10 -mt-10"></div>
-               <h4 className="text-3xl font-black text-[#004a23]">+ {Math.floor(subTotal / 1000)} Điểm</h4>
-               <p className="text-[#006633] text-sm mt-2 opacity-90 font-medium" style = {{paddingTop: '10px', paddingBottom: '10px'}}>Tích lũy từ đơn hàng này.</p>
+               <h4 className="text-3xl font-black text-[#004a23]">+ {Math.floor(subTotal / 50000)} Điểm</h4>
+               <p className="text-[#006633] text-sm mt-2 opacity-90 font-medium" style = {{paddingTop: '10px', paddingBottom: '10px'}}>Tích lũy từ đơn hàng này (50k = 1 điểm).</p>
             </div>
          </div>
       </div>

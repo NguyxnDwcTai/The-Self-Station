@@ -10,6 +10,33 @@ import KDSHeader from '../components/kds/KDSHeader';
 const SOCKET_SERVER_URL = 'http://localhost:5000'; // Fallback, usually window.location.origin
 const API_BASE_URL = 'http://localhost:5000/api';
 
+const playBeep = (freq = 440, duration = 150, type = 'sine') => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.value = freq;
+
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration / 1000);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + duration / 1000);
+  } catch (e) {
+    console.warn("Failed to play audio notification", e);
+  }
+};
+
+const playCancelAlertSound = () => {
+  playBeep(880, 100, 'triangle');
+  setTimeout(() => playBeep(880, 150, 'triangle'), 150);
+};
+
 const formatTimeDiff = (startTime, now) => {
   const diff = Math.floor((now - new Date(startTime).getTime()) / 1000);
   if (diff < 0) return '00:00';
@@ -29,6 +56,18 @@ const KDS = () => {
   const [activeTab, setActiveTab] = useState('Tất cả');
   const [activePage, setActivePage] = useState('orders'); // 'orders' | 'menu'
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [acknowledgedCancelledItemIds, setAcknowledgedCancelledItemIds] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('kds_acknowledged_cancelled');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('kds_acknowledged_cancelled', JSON.stringify(acknowledgedCancelledItemIds));
+  }, [acknowledgedCancelledItemIds]);
 
   const navigate = useNavigate();
 
@@ -65,12 +104,25 @@ const KDS = () => {
 
     socketRef.current.on('orderStatusUpdated', (data) => {
       const { orderID, detailId, status } = data;
+      if (status === 'CANCELLED') {
+        playCancelAlertSound();
+        setOrders(prevOrders => {
+          const order = prevOrders.find(o => o.orderID === orderID);
+          if (order) {
+            const item = order.orderDetails.find(i => i.id === detailId);
+            const tableName = order.table?.tableName || 'Mang đi';
+            const itemName = item?.menuItem?.itemName || 'Món ăn';
+            showToast(`⚠️ HỦY MÓN: Bàn "${tableName}" đã hủy món "${itemName}"!`, 'error');
+          }
+          return prevOrders;
+        });
+      }
       setOrders(prevOrders => {
         return prevOrders.map(order => {
           if (order.orderID === orderID) {
             return {
               ...order,
-              orderDetails: order.orderDetails.map(item => 
+              orderDetails: order.orderDetails.map(item =>
                 item.id === detailId ? { ...item, status } : item
               )
             };
@@ -109,7 +161,8 @@ const KDS = () => {
     });
 
     socketRef.current.on('newKioskOrder', (newOrder) => {
-      showToast(`Có order mới từ ${newOrder.tableID || 'Kiosk'}!`, 'success');
+      playBeep(523.25, 200, 'sine'); // Đô 5
+      showToast(`Có order mới từ ${newOrder.table?.tableName || newOrder.tableID || 'Kiosk'}!`, 'success');
       setOrders(prevOrders => {
         if (!prevOrders.some(o => o.orderID === newOrder.orderID)) {
           return [...prevOrders, newOrder];
@@ -173,13 +226,13 @@ const KDS = () => {
 
     // Optimistic UI update (Rollback prep)
     const previousOrders = [...orders];
-    
+
     // Instantly hide the item or mark as done in UI
     setOrders(prevOrders => prevOrders.map(order => {
       if (order.orderID === orderId) {
         return {
           ...order,
-          orderDetails: order.orderDetails.map(item => 
+          orderDetails: order.orderDetails.map(item =>
             item.id === detailId ? { ...item, status: 'DONE' } : item
           )
         };
@@ -205,12 +258,12 @@ const KDS = () => {
     }
 
     const previousOrders = [...orders];
-    
+
     setOrders(prevOrders => prevOrders.map(order => {
       if (order.orderID === orderId) {
         return {
           ...order,
-          orderDetails: order.orderDetails.map(item => 
+          orderDetails: order.orderDetails.map(item =>
             item.id === detailId ? { ...item, status: 'COOKING' } : item
           )
         };
@@ -234,14 +287,14 @@ const KDS = () => {
       showToast('Lỗi cập nhật trạng thái. Vui lòng kiểm tra lại kết nối mạng!', 'error');
       return;
     }
-    
+
     const previousOrders = [...orders];
-    
+
     setOrders(prevOrders => prevOrders.map(order => {
       if (order.orderID === orderId) {
         return {
           ...order,
-          orderDetails: order.orderDetails.map(item => 
+          orderDetails: order.orderDetails.map(item =>
             item.id === detailId ? { ...item, status: 'OUT_OF_STOCK' } : item
           )
         };
@@ -261,16 +314,24 @@ const KDS = () => {
   };
 
   const handleMarkOrderDone = async (order) => {
-    // Mark all waiting items as done
-    const waitingItems = order.orderDetails.filter(item => item.status === 'WAITING');
-    for (const item of waitingItems) {
+    // Mark all waiting and cooking items as done
+    const activeItems = order.orderDetails.filter(item => item.status === 'WAITING' || item.status === 'COOKING');
+    for (const item of activeItems) {
       await handleMarkAsDone(order.orderID, item.id, item.status);
+    }
+    // Auto-acknowledge cancelled items in this order
+    const cancelledItems = order.orderDetails.filter(item => item.status === 'CANCELLED' && !acknowledgedCancelledItemIds.includes(item.id));
+    if (cancelledItems.length > 0) {
+      setAcknowledgedCancelledItemIds(prev => [...prev, ...cancelledItems.map(i => i.id)]);
     }
   };
 
-  // Filter out orders that have no active items (DONE or CANCELLED only = hide)
-  const activeOrders = orders.filter(order => 
-    order.orderDetails && order.orderDetails.some(item => item.status === 'WAITING' || item.status === 'OUT_OF_STOCK' || item.status === 'COOKING')
+  // Filter out orders that have active items or unacknowledged cancellations
+  const activeOrders = orders.filter(order =>
+    order.orderDetails && order.orderDetails.some(item => {
+      const isUnacknowledgedCancel = item.status === 'CANCELLED' && !acknowledgedCancelledItemIds.includes(item.id);
+      return item.status === 'WAITING' || item.status === 'OUT_OF_STOCK' || item.status === 'COOKING' || isUnacknowledgedCancel;
+    })
   ).sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
 
   return (
@@ -283,16 +344,16 @@ const KDS = () => {
       )}
 
       {/* Sidebar */}
-      <KDSSidebar 
-        activePage={activePage} 
-        setActivePage={setActivePage} 
-        handleLogout={handleLogout} 
-        isOpen={isSidebarOpen} 
-        setIsOpen={setIsSidebarOpen} 
+      <KDSSidebar
+        activePage={activePage}
+        setActivePage={setActivePage}
+        handleLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
       />
 
       <div className="dashboard-main flex-1 flex flex-col overflow-hidden relative">
-        <KDSHeader 
+        <KDSHeader
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isConnected={isConnected}
           now={now}
@@ -321,46 +382,52 @@ const KDS = () => {
                   const waitTime = formatTimeDiff(order.orderDate, now);
                   const diffMs = now - new Date(order.orderDate).getTime();
                   const isUrgent = diffMs > 15 * 60 * 1000;
-                  let activeItems = order.orderDetails.filter(i => i.status === 'WAITING' || i.status === 'OUT_OF_STOCK' || i.status === 'COOKING' || i.status === 'CANCELLED');
-                  
+                  let activeItems = order.orderDetails.filter(i => {
+                    const isUnacknowledgedCancel = i.status === 'CANCELLED' && !acknowledgedCancelledItemIds.includes(i.id);
+                    return i.status === 'WAITING' || i.status === 'OUT_OF_STOCK' || i.status === 'COOKING' || isUnacknowledgedCancel;
+                  });
+
                   if (activeTab === 'Mới nhận') {
-                     activeItems = activeItems.filter(i => i.status === 'WAITING');
+                    activeItems = activeItems.filter(i => i.status === 'WAITING' || i.status === 'CANCELLED');
                   } else if (activeTab === 'Đang chế biến') {
-                     activeItems = activeItems.filter(i => i.status === 'COOKING');
+                    activeItems = activeItems.filter(i => i.status === 'COOKING' || i.status === 'CANCELLED');
                   }
 
                   if (activeItems.length === 0) return null;
 
-                  const statusOrder = { 'WAITING': 1, 'COOKING': 2, 'DONE': 3, 'OUT_OF_STOCK': 4, 'CANCELLED': 5 };
+                  const statusOrder = { 'CANCELLED': 1, 'COOKING': 2, 'WAITING': 3, 'OUT_OF_STOCK': 4, 'DONE': 5 };
                   activeItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
                   return (
                     <div key={order.orderID} className={`bg-[#ffffff] rounded-[8px] shadow-[0_12px_16px_rgba(0,0,0,0.06)] flex flex-col h-full overflow-hidden border ${isUrgent ? 'border-[#ffdad6]/50' : 'border-[#e4e2e2]/20'}`}>
                       {/* Card Header */}
-                      <div className="p-5 flex justify-between items-start border-b border-[#e4e2e2]/30" style ={{padding: '10px'}}>
+                      <div className="p-5 flex justify-between items-start border-b border-[#e4e2e2]/30" style={{ padding: '10px' }}>
                         <div>
                           <span className="text-[12px] leading-[16px] tracking-[0.05em] font-[600] text-[#424841]">BÀN</span>
                           <h2 className="text-[32px] leading-[36px] tracking-[-0.02em] font-[800] text-[#1b1c1c]">{order.table?.tableName || 'Mang đi'}</h2>
                         </div>
                         <div className="flex flex-col items-end">
-                          <div className={`flex items-center gap-1 ${isUrgent ? 'text-[#875f35] animate-pulse' : 'text-[#4F6F52]'}`} style = {{marginBottom: '5px'}}>
+                          <div className={`flex items-center gap-1 ${isUrgent ? 'text-[#875f35] animate-pulse' : 'text-[#4F6F52]'}`} style={{ marginBottom: '5px' }}>
                             {isUrgent ? <AlertTriangle size={20} /> : <Timer size={20} />}
                             <span className="text-[18px] leading-[22px] font-[700] tabular-nums">{waitTime}</span>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[12px] leading-[16px] tracking-[0.05em] font-[600] mt-1 uppercase ${isUrgent ? 'bg-[#ffdcbd] text-[#2c1600]' : 'bg-[#e3e1cb] text-[#646352]'}`} style = {{padding: '3px'}}>
+                          <span className={`px-2 py-0.5 rounded text-[12px] leading-[16px] tracking-[0.05em] font-[600] mt-1 uppercase ${isUrgent ? 'bg-[#ffdcbd] text-[#2c1600]' : 'bg-[#e3e1cb] text-[#646352]'}`} style={{ padding: '3px' }}>
                             {order.tableID ? 'ĂN TẠI CHỖ' : 'GIAO HÀNG'}
                           </span>
                         </div>
                       </div>
 
                       {/* Order Items */}
-                      <div className="p-5 flex-grow space-y-4" style ={{padding: '10px'}}>
+                      <div className="p-5 flex-grow space-y-4" style={{ padding: '10px' }}>
                         {activeItems.map((item, idx) => {
                           const isOutOfStock = item.status === 'OUT_OF_STOCK';
                           const isCooking = item.status === 'COOKING';
                           const isCancelled = item.status === 'CANCELLED';
+                          const itemStyle = isCancelled
+                            ? { backgroundColor: '#fff5f5', border: '1px solid #feb2b2', padding: '8px', borderRadius: '6px' }
+                            : {};
                           return (
-                            <div key={`${order.orderID}-${item.id || item.itemID}-${idx}`} className={`flex items-start gap-4 group ${(isOutOfStock || isCancelled) ? 'opacity-50 grayscale' : ''}`} style={{marginTop: '10px'}}>
+                            <div key={`${order.orderID}-${item.id || item.itemID}-${idx}`} className={`flex items-start gap-4 group ${isOutOfStock ? 'opacity-50 grayscale' : ''}`} style={{ marginTop: '10px', ...itemStyle }}>
                               {item.quantity > 1 ? (
                                 <span className={`text-[24px] leading-[28px] font-[700] ${isCancelled ? 'text-[#ba1a1a] bg-[#ffdad6] line-through' : 'text-[#2f4e33] bg-[#c8ecc8]'} w-10 h-10 flex items-center justify-center rounded-lg shrink-0`}>{item.quantity}</span>
                               ) : (
@@ -370,15 +437,20 @@ const KDS = () => {
                                 <p className={`text-[20px] leading-[24px] font-[600] ${isCancelled ? 'text-[#ba1a1a] line-through' : 'text-[#1b1c1c]'}`}>
                                   {item.menuItem?.itemName || 'Món không xác định'}
                                   {isOutOfStock && <span className="ml-2 text-[12px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold">Hết hàng</span>}
-                                  {isCancelled && <span className="float-right text-[12px] bg-[#ba1a1a] text-white px-2 py-0.5 rounded font-bold animate-pulse" style = {{padding: 5}}>HỦY</span>}
-                                  {isCooking && <span className="float-right text-[12px] bg-[#ffdcbd] text-[#9d4f00] px-2 py-0.5 rounded font-bold" style = {{padding: 5}}>Đang nấu</span>}
+                                  {isCancelled && <span className="float-right text-[12px] bg-[#ba1a1a] text-white px-2 py-0.5 rounded font-bold animate-pulse" style={{ padding: 5 }}>HỦY</span>}
+                                  {isCooking && <span className="float-right text-[12px] bg-[#ffdcbd] text-[#9d4f00] px-2 py-0.5 rounded font-bold" style={{ padding: 5 }}>Đang nấu</span>}
                                 </p>
                                 {!(isOutOfStock || isCancelled) && (
-                                  <div className="flex gap-2 mt-2" style = {{marginTop: 10}}>
+                                  <div className="flex gap-2 mt-2" style={{ marginTop: 10 }}>
                                     {item.status === 'WAITING' && (
-                                      <button onClick={() => handleMarkAsCooking(order.orderID, item.id)} className="px-4 py-1 text-white text-sm font-bold rounded-[4px] shadow-sm hover:bg-[#8b5300] transition-colors" style={{backgroundColor: '#b26b00', padding: '3px'}}>Bắt đầu chế biến</button>
+                                      <button onClick={() => handleMarkAsCooking(order.orderID, item.id)} className="px-4 py-1 text-white text-sm font-bold rounded-[4px] shadow-sm hover:bg-[#8b5300] transition-colors" style={{ backgroundColor: '#b26b00', padding: '3px' }}>Bắt đầu chế biến</button>
                                     )}
-                                    <button onClick={() => handleMarkAsDone(order.orderID, item.id, item.status)} className="px-4 py-1 text-white text-sm font-bold rounded-[4px] shadow-sm hover:bg-[#3d5a40] transition-colors" style = {{backgroundColor: '#4f6f52', padding: '3px'}}>Xong món này</button>
+                                    <button onClick={() => handleMarkAsDone(order.orderID, item.id, item.status)} className="px-4 py-1 text-white text-sm font-bold rounded-[4px] shadow-sm hover:bg-[#3d5a40] transition-colors" style={{ backgroundColor: '#4f6f52', padding: '3px' }}>Xong món này</button>
+                                  </div>
+                                )}
+                                {isCancelled && (
+                                  <div className="flex gap-2 mt-2" style={{ marginTop: 10 }}>
+                                    <button onClick={() => setAcknowledgedCancelledItemIds(prev => [...prev, item.id])} className="px-4 py-1 text-red text-sm font-bold rounded-[4px] shadow-sm bg-[#ba1a1a] hover:bg-[#931313] transition-colors" style={{ padding: '3px' }}>Xác nhận hủy (Đã rõ)</button>
                                   </div>
                                 )}
                               </div>
@@ -388,8 +460,8 @@ const KDS = () => {
                       </div>
 
                       {/* Card Footer */}
-                      <div className="p-4 bg-[#4F6F52]" style = {{marginTop: '10px'}}>
-                        <button onClick={() => handleMarkOrderDone(order)} className="w-full bg-[#4F6F52] text-white py-4 rounded-[8px] font-bold text-lg shadow-md active:scale-95 transition-transform hover:bg-[#3d5a40]" style = {{padding: '10px'}}>
+                      <div className="p-4 bg-[#4F6F52]" style={{ marginTop: '10px' }}>
+                        <button onClick={() => handleMarkOrderDone(order)} className="w-full bg-[#4F6F52] text-white py-4 rounded-[8px] font-bold text-lg shadow-md active:scale-95 transition-transform hover:bg-[#3d5a40]" style={{ padding: '10px' }}>
                           Đã xong
                         </button>
                       </div>

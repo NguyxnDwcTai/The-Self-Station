@@ -222,12 +222,12 @@ exports.scanCard = async (req, res) => {
       if (!card) {
          // Create anonymously if not exists
          const newCard = await prisma.customerCard.create({
-            data: { cardID, rewardPoints: Math.floor(currentBillTotal / 1000) }
+            data: { cardID, rewardPoints: Math.floor(currentBillTotal / 50000) }
          });
-         return res.json({ message: 'Thẻ mới', pointsAdded: Math.floor(currentBillTotal / 1000), totalPoints: newCard.rewardPoints });
+         return res.json({ message: 'Thẻ mới', pointsAdded: Math.floor(currentBillTotal / 50000), totalPoints: newCard.rewardPoints });
       }
 
-      const pointsToAdd = Math.floor(currentBillTotal / 1000);
+      const pointsToAdd = Math.floor(currentBillTotal / 50000);
       const updatedCard = await prisma.customerCard.update({
          where: { cardID },
          data: { rewardPoints: { increment: pointsToAdd } }

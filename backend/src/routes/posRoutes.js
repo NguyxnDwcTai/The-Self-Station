@@ -4,6 +4,7 @@ const posController = require('../controllers/posController');
 
 // Module 1: Member & Reward
 router.get('/customer', posController.findCustomer);
+router.post('/customer/register', posController.registerCustomer);
 router.post('/customer/link-order', posController.linkCustomerToOrder);
 
 // Module 2: Payment & Checkout

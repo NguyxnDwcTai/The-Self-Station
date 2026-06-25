@@ -90,15 +90,15 @@ const Dashboard = () => {
         <h1 className="dashboard-title">{t.dashOverview}</h1>
         {/* Action Strip (Command Menu) moved to header area to save space */}
         <div className="action-strip" style={{ marginBottom: 0 }}>
-          <button className="action-btn" onClick={() => navigate('/menu')}>
+          <button className="action-btn" onClick={() => navigate('/admin/menu')}>
             <PlusCircle size={18} />
             {t.dashAddMenu}
           </button>
-          <button className="action-btn" onClick={() => navigate('/promotions')}>
+          <button className="action-btn" onClick={() => navigate('/admin/promotions')}>
             <Tag size={18} />
             {t.dashAddPromo}
           </button>
-          <button className="action-btn" onClick={() => navigate('/accounts')}>
+          <button className="action-btn" onClick={() => navigate('/admin/accounts')}>
             <UserPlus size={18} />
             {t.dashAddStaff}
           </button>

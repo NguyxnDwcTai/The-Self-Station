@@ -12,7 +12,7 @@ model Category {
   categoryID   String     @id @db.VarChar(50)
   categoryName String     @db.VarChar(255)
   description  String?    @db.VarChar(255)
-  sortOrder    Int        @default(0)
+  
   menuItems    MenuItem[]
 }
 
@@ -24,6 +24,7 @@ model Promotion {
   applyScore    Int?
   startDate     DateTime    @db.Timestamp(0)
   endDate       DateTime    @db.Timestamp(0)
+  
   promoItems    PromoItem[]
   orders        Orders[]
 }
@@ -34,6 +35,9 @@ model Account {
   passwordHash String   @db.VarChar(255)
   role         Int
   isActive     Boolean? @default(true) @db.Bit(1)
+  branchID     String   @db.VarChar(50)
+
+  branch       Branch   @relation(fields: [branchID], references: [branchID])
   orders       Orders[]
 }
 
@@ -42,19 +46,17 @@ model Customer {
   fullName     String   @db.VarChar(255)
   phone        String   @unique @db.VarChar(20)
   rewardPoints Int?     @default(0)
+  
   orders       Orders[]
-}
-
-model CustomerCard {
-  cardID       String  @id @db.VarChar(50)
-  customerID   String? @db.VarChar(50)
-  rewardPoints Int     @default(0)
 }
 
 model DiningTable {
   tableID   String   @id @db.VarChar(50)
   tableName String   @db.VarChar(100)
   status    Int?     @default(0)
+  branchID  String   @db.VarChar(50)
+
+  branch    Branch   @relation(fields: [branchID], references: [branchID])
   orders    Orders[]
 }
 
@@ -66,9 +68,10 @@ model Voucher {
   minTotalRequired Decimal?  @default(0) @db.Decimal(18, 2)
   usageLimit       Int?
   usedCount        Int?      @default(0)
-  startDate        DateTime? @db.Timestamp(0)
-  expiryDate       DateTime? @db.Timestamp(0)
+  startDate        DateTime  @db.Timestamp(0)
+  expiryDate       DateTime  @db.Timestamp(0)
   isActive         Boolean?  @default(true) @db.Bit(1)
+  
   orders           Orders[]
 }
 
@@ -79,6 +82,7 @@ model MenuItem {
   price        Decimal       @db.Decimal(18, 2)
   imageURL     String?       @db.VarChar(255)
   isActive     Boolean?      @default(true) @db.Bit(1)
+  
   category     Category      @relation(fields: [categoryID], references: [categoryID])
   promoItems   PromoItem[]
   orderDetails OrderDetail[]
@@ -94,18 +98,21 @@ model Orders {
   status      Int?      @default(0)
   totalAmount Decimal?  @default(0) @db.Decimal(18, 2)
   orderDate   DateTime? @default(now()) @db.Timestamp(0)
+  branchID    String    @db.VarChar(50)
 
   table        DiningTable   @relation(fields: [tableID], references: [tableID])
   promotion    Promotion?    @relation(fields: [promoID], references: [promoID])
   cashier      Account?      @relation(fields: [cashierID], references: [accountID])
   customer     Customer?     @relation(fields: [customerID], references: [customerID])
   voucher      Voucher?      @relation(fields: [voucherID], references: [voucherID])
+  branch       Branch        @relation(fields: [branchID], references: [branchID])
   orderDetails OrderDetail[]
 }
 
 model PromoItem {
   promoID   String    @db.VarChar(50)
   itemID    String    @db.VarChar(50)
+  
   promotion Promotion @relation(fields: [promoID], references: [promoID])
   menuItem  MenuItem  @relation(fields: [itemID], references: [itemID])
 
@@ -113,14 +120,16 @@ model PromoItem {
 }
 
 model OrderDetail {
-  id        String   @id @default(uuid()) @db.VarChar(50)
-  orderID   String   @db.VarChar(50)
-  itemID    String   @db.VarChar(50)
-  quantity  Int
-  unitPrice Decimal  @db.Decimal(18, 2)
-  status    String   @default("WAITING") @db.VarChar(20)
-  order     Orders   @relation(fields: [orderID], references: [orderID])
-  menuItem  MenuItem @relation(fields: [itemID], references: [itemID])
+  orderID    String   @db.VarChar(50)
+  itemID     String   @db.VarChar(50)
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(18, 2)
+  cookStatus Int?     @default(0)
+
+  order      Orders   @relation(fields: [orderID], references: [orderID])
+  menuItem   MenuItem @relation(fields: [itemID], references: [itemID])
+
+  @@id([orderID, itemID])
 }
 
 model Branch {
@@ -133,4 +142,8 @@ model Branch {
   openTime   DateTime @db.Time(0)
   closeTime  DateTime @db.Time(0)
   isActive   Boolean? @default(true) @db.Bit(1)
+
+  accounts   Account[]
+  tables     DiningTable[]
+  orders     Orders[]
 }

@@ -73,6 +73,60 @@ exports.linkCustomerToOrder = async (req, res) => {
     }
 };
 
+/**
+ * POST /api/pos/customer/register
+ * Đăng ký khách hàng mới và (tùy chọn) gắn vào đơn hàng
+ */
+exports.registerCustomer = async (req, res) => {
+    const { phone, fullName, tableID } = req.body;
+    if (!phone || !fullName) {
+        return res.status(400).json({ error: 'MISSING_FIELDS', message: 'Cần số điện thoại và họ tên' });
+    }
+
+    try {
+        // Kiểm tra xem số điện thoại đã tồn tại chưa
+        const existing = await prisma.customer.findUnique({ where: { phone } });
+        if (existing) {
+            return res.status(400).json({ error: 'CUSTOMER_EXISTS', message: 'Số điện thoại này đã được đăng ký' });
+        }
+
+        const customerID = `CUST-${Date.now()}`;
+        const newCustomer = await prisma.customer.create({
+            data: {
+                customerID,
+                phone,
+                fullName,
+                rewardPoints: 0
+            }
+        });
+
+        // Nếu có tableID, gắn customer vào đơn hàng đang mở
+        if (tableID) {
+            const order = await prisma.orders.findFirst({
+                where: { tableID, status: 0 }
+            });
+            if (order) {
+                await prisma.orders.update({
+                    where: { orderID: order.orderID },
+                    data: { customerID }
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            customer: {
+                customerID: newCustomer.customerID,
+                fullName: newCustomer.fullName,
+                phone: newCustomer.phone,
+                rewardPoints: newCustomer.rewardPoints
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'SERVER_ERROR', message: error.message });
+    }
+};
+
 // ─────────────────────────────────────────────
 // Module 2: Payment & Checkout
 // ─────────────────────────────────────────────
@@ -241,7 +295,7 @@ exports.processCheckout = async (req, res) => {
         }
 
         const changeAmount = paymentMethod === 'CASH' ? parseFloat((received - finalTotal).toFixed(2)) : 0;
-        const pointsEarned = Math.floor(finalTotal);
+        const pointsEarned = Math.floor(finalTotal / 50000);
 
         // === TRANSACTION ===
         await prisma.$transaction(async (tx) => {

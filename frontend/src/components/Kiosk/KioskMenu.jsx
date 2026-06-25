@@ -227,7 +227,7 @@ export default function KioskMenu({ menuItems, cart, handleUpdateCart, submitOrd
           {/* Points */}
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm text-gray-500" style={{marginLeft: '20px', marginTop: '30px'}}>Điểm thưởng dự kiến</span>
-            <span className="text-sm font-bold text-[#9B5110]" style={{marginRight: '20px', marginTop: '30px'}}>+{Math.floor(totalAmount / 1000)} điểm</span>
+            <span className="text-sm font-bold text-[#9B5110]" style={{marginRight: '20px', marginTop: '30px'}}>+{Math.floor(totalAmount / 50000)} điểm</span>
           </div>
           {/* Strikethrough original price */}
           {totalAmount > 0 && (
