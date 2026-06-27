@@ -439,8 +439,8 @@ const POSCashier = () => {
                       key={m.value}
                       onClick={() => setPaymentMethod(m.value)}
                       className={`relative h-[72px] rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 overflow-hidden ${isActive
-                          ? 'text-white z-10'
-                          : 'border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 hover:shadow-sm'
+                        ? 'text-white z-10'
+                        : 'border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 hover:shadow-sm'
                         }`}
                       style={isActive ? {
                         background: 'linear-gradient(135deg, #f97316, #eb6933)',
@@ -586,6 +586,7 @@ const POSCashier = () => {
                 alignItems: 'center',
                 gap: '14px',
                 boxShadow: '0 4px 16px rgba(251, 191, 36, 0.12)',
+                marginBottom: '25px'
               }}>
                 <div style={{
                   flexShrink: 0,

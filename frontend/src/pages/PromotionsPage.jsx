@@ -120,13 +120,13 @@ const PromotionsPage = () => {
                           HSD: {new Date(v.expiryDate).toLocaleDateString('vi-VN')}
                        </p>
                        
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: 'auto' }}>
-                          <div style={{ backgroundColor: '#f5f5f5', border: '1px dashed #ccc', padding: '8px 12px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', color: '#eb6933', flex: 1, textAlign: 'center', letterSpacing: '1px' }}>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+                          <div style={{ backgroundColor: '#f5f5f5', border: '1px dashed #ccc', padding: '8px 12px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', color: '#eb6933', textAlign: 'center', letterSpacing: '1px' }}>
                              {v.voucherCode}
                           </div>
                           <button 
                              onClick={() => copyToClipboard(v.voucherCode)}
-                             style={{ backgroundColor: '#eb6933', color: '#fff', border: 'none', padding: '9px 15px', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                             style={{ width: '100%', backgroundColor: '#eb6933', color: '#fff', border: 'none', padding: '9px 15px', borderRadius: '6px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', transition: 'background-color 0.2s' }}
                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d55a29'}
                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#eb6933'}
                           >
@@ -151,7 +151,7 @@ const PromotionsPage = () => {
         }
         .ticket {
            display: flex;
-           height: 180px;
+           height: 200px;
            background-color: #fff;
            border-radius: 12px;
            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
