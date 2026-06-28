@@ -58,7 +58,7 @@ const KDS = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [acknowledgedCancelledItemIds, setAcknowledgedCancelledItemIds] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('kds_acknowledged_cancelled');
+      const saved = localStorage.getItem('kds_acknowledged_cancelled');
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
@@ -66,7 +66,7 @@ const KDS = () => {
   });
 
   useEffect(() => {
-    sessionStorage.setItem('kds_acknowledged_cancelled', JSON.stringify(acknowledgedCancelledItemIds));
+    localStorage.setItem('kds_acknowledged_cancelled', JSON.stringify(acknowledgedCancelledItemIds));
   }, [acknowledgedCancelledItemIds]);
 
   const navigate = useNavigate();
@@ -208,6 +208,23 @@ const KDS = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/orders`);
       setOrders(res.data);
+      
+      // Clean up acknowledgedCancelledItemIds in localStorage
+      // only keep IDs that exist in the currently fetched active orders
+      if (res.data && Array.isArray(res.data)) {
+        const fetchedDetailIds = new Set();
+        res.data.forEach(order => {
+          if (order.orderDetails && Array.isArray(order.orderDetails)) {
+            order.orderDetails.forEach(item => {
+              if (item.id) fetchedDetailIds.add(item.id);
+            });
+          }
+        });
+        setAcknowledgedCancelledItemIds(prev => {
+          const arr = Array.isArray(prev) ? prev : [];
+          return arr.filter(id => fetchedDetailIds.has(id));
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch orders", error);
     }
