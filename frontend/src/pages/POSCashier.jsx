@@ -242,7 +242,7 @@ const POSCashier = () => {
                 {/* Total Area */}
                 <div className="px-6 py-5 bg-slate-50/80 border-t border-slate-200 shrink-0">
                   {voucherResult && (
-                    <div className="flex justify-between items-center text-sm mb-3">
+                    <div className="flex justify-between items-center text-sm mb-3" style={{ padding: '10px' }}>
                       <span className="font-semibold text-slate-500 flex items-center gap-2">
                         <Tag size={16} /> Khuyến mãi ({voucherCode})
                       </span>
@@ -416,7 +416,7 @@ const POSCashier = () => {
               </div>
               {voucherError && <p className="text-[var(--dashboard-danger-text)] text-xs mt-2 font-semibold">{voucherError}</p>}
               {voucherResult && (
-                <p className="text-[var(--dashboard-success-text)] text-xs mt-2 font-bold flex items-center gap-1">
+                <p className="text-[var(--dashboard-success-text)] text-xs mt-2 font-bold flex items-center gap-1" style={{ marginTop: '10px' }}>
                   <CheckCircle2 size={14} /> Áp dụng thành công. Giảm {voucherResult.discountAmount.toLocaleString()} ₫
                 </p>
               )}

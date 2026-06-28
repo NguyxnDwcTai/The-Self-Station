@@ -208,7 +208,7 @@ const KDS = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/orders`);
       setOrders(res.data);
-      
+
       // Clean up acknowledgedCancelledItemIds in localStorage
       // only keep IDs that exist in the currently fetched active orders
       if (res.data && Array.isArray(res.data)) {
@@ -498,7 +498,7 @@ const KDS = () => {
       {/* Toasts */}
       {toast && (
         <div className={`fixed bottom-8 right-8 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm z-50 flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300
-          ${toast.type === 'error' ? 'bg-[var(--dashboard-danger-bg)] text-[var(--dashboard-danger-text)]' : 'bg-[var(--dashboard-success-bg)] text-[var(--dashboard-success-text)]'}`}>
+          ${toast.type === 'error' ? 'bg-[var(--dashboard-danger-bg)] text-[var(--dashboard-danger-text)]' : 'bg-[var(--dashboard-success-bg)] text-[var(--dashboard-success-text)]'}`} style={{ padding: '10px' }}>
           {toast.type === 'error' ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
           {toast.message}
         </div>

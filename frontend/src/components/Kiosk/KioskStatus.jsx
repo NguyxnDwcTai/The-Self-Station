@@ -10,14 +10,15 @@ export default function KioskStatus({ orderTracking, setView, isReadOnly }) {
 
     const calculateProgress = () => {
       const items = orderTracking.orderDetails || [];
-      const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+      const activeItems = items.filter(i => i.status !== 'CANCELLED' && i.status !== 'OUT_OF_STOCK');
+      const totalQuantity = activeItems.reduce((acc, item) => acc + item.quantity, 0);
       
       if (totalQuantity === 0) {
         setProgress(0);
         return;
       }
 
-      const doneQuantity = items.filter(i => i.status === 'DONE').reduce((acc, item) => acc + item.quantity, 0);
+      const doneQuantity = activeItems.filter(i => i.status === 'DONE').reduce((acc, item) => acc + item.quantity, 0);
       const p = Math.min((doneQuantity / totalQuantity) * 100, 100);
       
       setProgress(p);
