@@ -266,12 +266,15 @@ const POSReport = () => {
             </div>
 
             {/* ─── PRODUCT TABLE ───────────────────── */}
-            <div style={{
-              background: 'white',
-              borderRadius: '20px',
-              border: '1.5px solid #e2e8f0',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-            }}>
+            <div
+              id="print-table-section"
+              style={{
+                background: 'white',
+                borderRadius: '20px',
+                border: '1.5px solid #e2e8f0',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+              }}
+            >
               {/* Table Header */}
               <div style={{
                 padding: '20px 28px',
@@ -285,9 +288,14 @@ const POSReport = () => {
                   <div style={{ background: '#fff5f0', borderRadius: '10px', padding: '8px', display: 'flex' }}>
                     <Utensils size={18} style={{ color: '#eb6933' }} />
                   </div>
-                  <h2 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-                    Chi tiết món ăn đã bán
-                  </h2>
+                  <div>
+                    <h2 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                      Chi tiết món ăn đã bán
+                    </h2>
+                    <p className="print-only" style={{ display: 'none', margin: '4px 0 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
+                      Báo cáo ngày: {formatDate(selectedDate)} · Chi nhánh trung tâm
+                    </p>
+                  </div>
                 </div>
                 {summary?.items?.length > 0 && (
                   <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px' }}>
@@ -296,7 +304,7 @@ const POSReport = () => {
                 )}
               </div>
 
-              <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '420px' }}>
+              <div className="print-table-container" style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '420px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #f1f5f9', position: 'sticky', top: 0, zIndex: 1 }}>
@@ -395,8 +403,48 @@ const POSReport = () => {
         )}
       </div>
 
-      {/* Spin keyframes */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      {/* Spin keyframes and Print styles */}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media print {
+          body {
+            background: white !important;
+            color: black !important;
+          }
+          /* Hide everything on the page */
+          body * {
+            visibility: hidden;
+          }
+          /* Make the print section and all its contents visible */
+          #print-table-section, #print-table-section * {
+            visibility: visible;
+          }
+          /* Position the print section at the top left of the print area */
+          #print-table-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+          }
+          /* Make print-only elements display correctly */
+          .print-only {
+            display: block !important;
+          }
+          /* Remove constraints of table container for print page breaks */
+          .print-table-container {
+            max-height: none !important;
+            overflow: visible !important;
+          }
+          /* Ensure color styling (backgrounds, text colors) is kept in PDF/Print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </POSLayout>
   );
 };
